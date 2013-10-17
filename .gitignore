@@ -1,3 +1,9 @@
 hide
 .dropbox
 .DS_Store
+*.aux
+*.dvi
+*.log
+*.out
+*.synctex.gz
+*.toc
