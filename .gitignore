@@ -1,3 +1,9 @@
 # See https://help.github.com/articles/ignoring-files
 .dropbox
 .DS_Store
+*.aux
+*.dvi
+*.log
+*.out
+*.synctex.gz
+*.toc
