@@ -21,7 +21,8 @@
 
 %\title{TFOCS v1.0c user guide (BETA)}
 %\title{TFOCS v1.2 user guide} % 1.2 Sept 2012
-\title{TFOCS user guide\\\large Version 1.3} % 1.3 Oct 2013
+%\title{TFOCS user guide\\\large Version 1.3} % 1.3 Oct 2013
+\title{TFOCS user guide\\\large Version 1.3 release 2} % Oct 30 2013
 
 \author{Stephen Becker\thanks{IBM Research, Yorktown Heights, NY 10598} \and
 Emmanuel Cand\`es\thanks{Departments of Mathematics and Statistics, Stanford University, Stanford, CA 94305} \and
@@ -1602,8 +1603,6 @@ is the dual of the spectral norm (see \S\ref{sec:prox}).
 When an atom has not been implemented, it is marked as ``NA.'' These atoms may be
 added in the future if there is demand for them.
 
-% TODO: add in proj)simplex, proj_psdUTrace.m; also add in the l1 + non-neg
-%\begin{center}
     \begin{table}
         \centering
     \caption{Common functions and their conjugates; functions denoted with $^\dagger$ satisfy
@@ -1617,8 +1616,6 @@ added in the future if there is demand for them.
     $h(y) = c$   & \verb@smooth_constant@ & $h^*(z) = \iota_{z=0}$ & \verb@proj_0@$^\dagger$ \\
     $h(y)=\iota_{\R^n_+}$ & \verb@proj_Rplus@ & $h^*(z)=h(z)$ & \verb@proj_Rplus@ \\
     $h(Y)=\iota_{Y \succeq 0}$ & \verb@proj_psd@ & $h^*(Z)=h(Z)$ & \verb@proj_psd@ \\
-%    $h(y)=\iota_{\R^n_+}$ & \verb@proj_simplex@ & $h^*(z)=h(z)$ & \verb@proj_Rplus@ \\
-%    $h(Y)=\iota_{Y \succeq 0}$ & \verb@proj_psdUTrace@ & $h^*(Z)=h(Z)$ & \verb@proj_psd@ \\
     $h(y)=\|y\|_1$ & \verb@prox_l1@ & $h^*(z)=\iota_{\|z\|_\infty \le 1}$ & \verb@proj_linf@$^\dagger$ \\
 
     $h(y)=\sum_i y_i + \iota_{y \ge 0}$ & \verb@prox_l1pos@ & $h^*(z)=\iota_{\max(z) \le 1}$ & \verb@proj_max@ \\ % adding proj_max in Sept 2012
@@ -1789,9 +1786,6 @@ These equalities are due to Moreau; see Lemma 2.10~\cite{CombettesWajs05}.
 \begin{thebibliography}{2}
     \bibitem[1]{TFOCS} S. Becker, E. J. Cand\`es, and M. Grant, \emph{Templates for convex cone problems with applications to sparse signal recovery}, Math. Prog. Comp. \textbf{3} (2011), no.~3, 165--218.
     \url{http://tfocs.stanford.edu}
-%Technical report, Department of Statistics,
-%Stanford University, 2010.
-%Preprint available at \url{http://tfocs.stanford.edu/tfocs/paper.shtml}.
 \bibitem[2]{SPOT} E. van den Berg and M. Friedlander. Spot---a linear-operator
 toolbox. Software and web site, Department of Computer Science, 
 University of British Columbia, 2009. \url{http://www.cs.ubc.ca/labs/scl/spot/}.
