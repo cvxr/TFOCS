@@ -1,5 +1,6 @@
 %{
-    Tests the Ordered LASSO ( aka Ordered L1 regularized Least Squares) problem
+    Tests the Sorted/Ordered LASSO ( aka Ordered L1 regularized Least Squares) problem
+    Also known as SLOPE for Sorted L-One Penalized Estimation
 
     min_x sum(lambda*sort(abs(x),'descend')) + .5||A(x)-b||_2^2
 
@@ -23,7 +24,7 @@ myAwgn = @(x,snr) x + ...
 %%
 % Try to load the problem from disk
 fileName = fullfile(tfocs_where,...
-    'examples','smallscale','reference_solutions','ordered_asso_problem1_noisy');
+    'examples','smallscale','reference_solutions','ordered_lasso_problem1_noisy');
 randn('state',34324);
 rand('state',34324);
 N = 1024;
@@ -57,7 +58,7 @@ else
 
     % We cannot get the solution via CVX easily, so solve using our method
     opts = struct('restart',-Inf,'tol',1e-13,'maxits',1000, 'printEvery',10);
-    [ x, out, optsOut ] = solver_OrderedLASSO( A, b, lambda, x0, opts );
+    [ x, out, optsOut ] = solver_SLOPE( A, b, lambda, x0, opts );
     x_ref       = x;
     obj_ref     = norm(A*x-b)^2/2 + sum(lambda(:).*sort(abs(x),'descend'));
     
@@ -85,7 +86,7 @@ opts = struct('restart',-Inf,'tol',1e-13,'maxits',1000, 'printEvery',10);
 opts.errFcn     = { @(f,primal) er(primal), ...
                     @(f,primal) f - obj_ref   }; 
 tic;
-[ x, out, optsOut ] = solver_OrderedLASSO( A, b, lambda, x0, opts );
+[ x, out, optsOut ] = solver_SLOPE( A, b, lambda, x0, opts );
 time_TFOCS = toc;
 
 fprintf('Solution has %d nonzeros.  Error vs. reference solution is %.2e\n',...

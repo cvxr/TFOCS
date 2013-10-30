@@ -1729,7 +1729,7 @@ These equalities are due to Moreau; see Lemma 2.10~\cite{CombettesWajs05}.
 \verb@prox_hinge@ & Hinge-loss function. \\
 \verb@prox_hingeDual@ & Dual function of the Hinge-loss function. \\
 \verb@prox_l1@ & L1 norm. \\
-\verb@prox_Ol1@ & Ordered L1 norm. \\
+\verb@prox_Sl1@ & Sorted (aka) ordered L1 norm. \\
 \verb@prox_l1l2@ & L1-L2 block norm: sum of L2 norms of rows. \\
 \verb@prox_l1linf@ & L1-LInf block norm: sum of L2 norms of rows. \\
 \verb@prox_l1pos@ & L1 norm, restricted to $x \ge 0$ \\
@@ -1759,7 +1759,7 @@ These equalities are due to Moreau; see Lemma 2.10~\cite{CombettesWajs05}.
 \multicolumn{2}{l}{\bf  Premade solvers for specific problems (vector variables)}\\
 \verb@solver_L1RLS@ & l1-regularized least squares problem, sometimes called the LASSO. \\
 \verb@solver_LASSO@ & Minimize residual subject to l1-norm constraints. \\
-\verb@solver_OrderedLASSO@ & Like LASSO but with an ordered l1 norm; see documentation. \\
+\verb@solver_SLOPE@ & Sorted L One Penalized Estimation; like LASSO but with an ordered l1 norm; see documentation. \\
 \verb@solver_sBP@ & Basis pursuit (l1-norm with equality constraints). Uses smoothing. \\
 \verb@solver_sBPDN@ & Basis pursuit de-noising. BP with relaxed constraints. Uses smoothing. \\
 \verb@solver_sBPDN_W@ & Weighted BPDN problem. Uses smoothing. \\

@@ -1,3 +1,14 @@
+-- Note --
+As of the move to github on Oct 2013, we will not mention
+minor changes in this changelog since minor changes
+can be viewed automatically using github's versioning tools
+----------
+
+Oct 29 2013, v1.3 release 2
+    Renaming solver_OrderedLASSO.m to solver_SLOPE.m
+    Renaming prox_Ol1.m to prox_Sl1.m
+    Renaming examples/smallscale/test_OrderedLASSO.m to ...test_SLOPE.m
+
 Oct 10 2013, v1.3
         License changed! See LICENSE for details
     New:

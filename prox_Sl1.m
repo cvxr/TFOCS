@@ -1,5 +1,5 @@
-function op = prox_Ol1( lambda )
-%PROX_OL1    Ordered L1 norm.
+function op = prox_Sl1( lambda )
+%PROX_SL1    Sorted/Ordered L1 norm.
 %    OP = PROX_L1( lambda ) implements the nonsmooth function
 %        OP(X) = sum(lambda.*sort(abs(X),'descend'))
 %    where lambda is strictly positive and sorted in decreasing order,
@@ -28,7 +28,7 @@ if ~issorted(flipud(lambda(:)))
     error( 'Argument lambda must be sorted in decreasing order.');
 end
 if numel(lambda)==1
-    warning('TFOCS:prox_OL1','When lambda is a scalar, we recommend prox_l1.m instead pf prox_OL1.m');
+    warning('TFOCS:prox_SL1','When lambda is a scalar, we recommend prox_l1.m instead pf prox_SL1.m');
 end
 
 
@@ -39,7 +39,7 @@ if 3 ~= exist('proxAdaptiveL1Mex','file')
     makeMex;
     % check that it worked
     if 3 ~= exist('proxAdaptiveL1Mex','file')
-        disp('Compilation of mex files for prox_OL1.m failed; please report this error');
+        disp('Compilation of mex files for prox_SL1.m failed; please report this error');
     end
 end
 

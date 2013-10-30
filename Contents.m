@@ -57,7 +57,7 @@
 %   prox_hinge                     - Hinge-loss function.
 %   prox_hingeDual                 - Dual function of the Hinge-loss function.
 %   prox_l1                        - L1 norm.
-%   prox_Ol1                       - Ordered L1 norm.
+%   prox_Sl1                       - Sorted (aka ordered) L1 norm.
 %   prox_l1l2                      - L1-L2 block norm: sum of L2 norms of rows.
 %   prox_l1linf                    - L1-LInf block norm: sum of L2 norms of rows.
 %   prox_l1pos                     - L1 norm, restricted to x >= 0
@@ -87,7 +87,7 @@
 % Premade solvers for specific problems (vector variables)
 %   solver_L1RLS                   - l1-regularized least squares problem, sometimes called the LASSO.
 %   solver_LASSO                   - Minimize residual subject to l1-norm constraints.
-%   solver_OrderedLASSO            - LASSO using ordered l1-norm.
+%   solver_SLOPE                   - Sorted L One Penalized Estimation (LASSO using sorted/ordered l1 norm)
 %   solver_sBP                     - Basis pursuit (l1-norm with equality constraints). Uses smoothing.
 %   solver_sBPDN                   - Basis pursuit de-noising. BP with relaxed constraints. Uses smoothing.
 %   solver_sBPDN_W                 - Weighted BPDN problem. Uses smoothing.
