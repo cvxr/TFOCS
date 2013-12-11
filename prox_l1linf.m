@@ -1,6 +1,6 @@
 function op = prox_l1linf( q )
 
-%PROX_L1LINF    L1-LInf block norm: sum of L2 norms of rows.
+%PROX_L1LINF    L1-LInf block norm: sum of L-inf norms of rows.
 %    OP = PROX_L1LINF( q ) implements the nonsmooth function
 %        OP(X) = q * sum_{i=1:m} norm(X(i,:),Inf)
 %    where X is a m x n matrix.  If n = 1, this is equivalent
@@ -35,6 +35,8 @@ function x = prox_f(x,t,q)
   dim   = 2;
   
   % Option 1: explicitly call prox_linf on the rows:
+  % slow, but the chief benefit is that it is low memory
+  % This would probably be faster if the matrix was transposed before and after
 %   for k= 1:n
 %       if isscalar(q), qk = q;
 %       else, qk = q(k);
@@ -46,8 +48,14 @@ function x = prox_f(x,t,q)
 
   
 % Option 2: vectorize the call.  By far, more efficient than option 1
-  s     = sort( abs(x), dim, 'descend' );
-  cs    = cumsum(s,dim);
+
+  %s     = sort( abs(x), dim, 'descend' );
+  %cs    = cumsum(s,dim);
+  % Since Matlab stores matrices in column-major order, this method is more cache friendly:
+  s     = sort( abs(x)', q, 'descend' );
+  cs    = cumsum(s,1)';
+  s     = s';
+
   s     = [s(:,2:end), zeros(n,1)];
   
 
@@ -59,16 +67,21 @@ function x = prox_f(x,t,q)
   else
       tq = repmat( t*q, 1, d );
   end
-  Z = cs - s*diag(1:d);
+  %Z = cs - s*diag(1:d);
+  % The above may require a lot of memory, so use spdiag or this:
+  Z = cs - bsxfun(@times,s,1:d);
+
   Z = ( Z >= tq );
   Z = Z.';
-  
+  % now Z is d x n (typically d is large, n is small) 
   
   % Not sure how to vectorize the find.
   % One option is to use the [i,j] = find(...) form,
   % but that's also extra work, since we can't just find the "first".
   % So for now, making a for loop
   for k = 1:n
+      % This is why we transposed Z: due to column-major order,
+      %     find( columnVector ) is faster than find( rowVector )
       ndxk = find( Z(:,k), 1 );
       if ~isempty(ndxk)
           ndx1(k) = ndxk;
@@ -84,6 +97,8 @@ function x = prox_f(x,t,q)
   tau_noZeros = tau;
   tau_noZeros( ~x ) = 1;
   x   = x .* (  tau ./ max( abs(x), tau_noZeros ) );
+  % Another, but not really better, way is to not do the rempat stuff and do:
+  % x     = sign(x).*bsxfun( @min, tau, abs(x) );
   
   
 end
