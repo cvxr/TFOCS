@@ -78,17 +78,25 @@ function x = prox_f(x,t,q)
   % Not sure how to vectorize the find.
   % One option is to use the [i,j] = find(...) form,
   % but that's also extra work, since we can't just find the "first".
-  % So for now, making a for loop
-  for k = 1:n
-      % This is why we transposed Z: due to column-major order,
-      %     find( columnVector ) is faster than find( rowVector )
-      ndxk = find( Z(:,k), 1 );
-      if ~isempty(ndxk)
-          ndx1(k) = ndxk;
-          ndx2(k) = ndxk;
-      else
-          ndx1(k) = 1; % value doesn't matter
-          ndx2(k) = Inf;
+  if n > 5
+      % avoid the for-loop
+      ndx1  = (d+1)-sum(Z)'; % this is the first row with Z > 0
+      ndx2  = ndx1;
+      ndx2( ndx2 == d+1 ) = Inf;
+      ndx1( ndx1 == d+1)  = d; % arbitrary, but do this so we don't have a special case later
+  else
+      % this might be slightly less memory, so keep the code
+      for k = 1:n
+          % This is why we transposed Z: due to column-major order,
+          %     find( columnVector ) is faster than find( rowVector )
+          ndxk = find( Z(:,k), 1 );
+          if ~isempty(ndxk)
+              ndx1(k) = ndxk;
+              ndx2(k) = ndxk;
+          else
+              ndx1(k) = 1; % value doesn't matter
+              ndx2(k) = Inf;
+          end
       end
   end
   indx_cs = sub2ind( [n,d], (1:n)', ndx1 );
@@ -103,19 +111,6 @@ function x = prox_f(x,t,q)
   
 end
 
-% Some old code: 
-% function x = prox_linf_q( q, x, t )
-% 
-%     s   = sort( abs(nonzeros(x)), 'descend' );
-%     cs  = cumsum(s);
-%     ndx = find( cs - (1:numel(s))' .* [s(2:end);0] >= t * q, 1 );
-%     if ~isempty( ndx ),
-%         tau = ( cs(ndx) - t * q ) / ndx;
-%         x   = x .* ( tau ./ max( abs(x), tau ) );
-%     else
-%         x = 0;
-%     end
-% end
 
 % TFOCS v1.3 by Stephen Becker, Emmanuel Candes, and Michael Grant.
 % Copyright 2013 California Institute of Technology and CVX Research.
