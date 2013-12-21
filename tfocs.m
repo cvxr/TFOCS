@@ -82,7 +82,7 @@ elseif nargin == 1 && ischar(smoothF) && ...
     || strcmpi(smoothF,'-v') || strcmpi(smoothF,'-version') )
     % Display version information
 %     type version.txt 
-    disp('TFOCS v1.3 1.1, December 2011');
+    disp('TFOCS v1.3, October 2013');
     return
 end
 

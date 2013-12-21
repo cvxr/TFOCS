@@ -87,6 +87,7 @@ end
 % tol         = finalTol2*betaTol^(kMax+1); % bug fixed Feb 2011
 tol         = finalTol2*betaTol^(kMax);
 
+L0   = Inf; % for first round, use default value of stepsize
 xOld = x0;
 odataCumulative      = [];
 odataCumulative.niter= 0;
@@ -120,6 +121,9 @@ for k = 1:kMax
     if k == kMax && ~isempty( finalRestart )
         optsTemp.restart    = finalRestart; 
     end
+    if isfinite(L0)
+        optsTemp.L0     = L0;
+    end
     
     % call the solver
     [x, odata, optsOut ] = fcn( mu, x0, z0, optsTemp );
@@ -145,6 +149,9 @@ for k = 1:kMax
     
     % (possibly) decrease mu for next solve
     mu = mu*muDecrement;
+    
+    % Dec '13, use stepsize estimate
+    L0  = 1/odata.stepsize(end);
     
     % update output data
     fields = { 'f', 'normGrad', 'stepsize','theta','counts','err' };

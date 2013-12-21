@@ -51,23 +51,33 @@ end
 % minimizes them, favoring x in the case of a tie.
 %
 
+v_is_x  = false;
+v_is_y  = false;
 % if isempty(status) && ( ~isempty(stopFcn) || restart < 0 || stopCrit == 3 || stopCrit ==4 ),
 if (isempty(status) || ~isempty(findstr(status,'limit')) ) ...
         && ( ~isempty(stopFcn) || restart < 0 || stopCrit == 3 || stopCrit ==4 ),
-    comp_x = [ isinf(f_x), saddle*~isempty(stopFcn)*isempty(g_Ax), isinf(C_x) ];
-    comp_y = [ isinf(f_y), saddle*~isempty(stopFcn)*isempty(g_Ay), isinf(C_y) ];
-    if sum(comp_x) <= sum(comp_y),
+    need_dual   = saddle && (~isempty(stopFcn) || stopCrit == 3 || stopCrit == 4 );
+    comp_x = [ isinf(f_x), need_dual*isempty(g_Ax), isinf(C_x) ];
+    comp_y = [ isinf(f_y), need_dual*isempty(g_Ay), isinf(C_y) ];
+    if sum(comp_x) <= sum(comp_y) || stopping_criteria_always_use_x,
         if comp_x(2), [f_x,g_Ax] = apply_smooth(A_x);
         elseif comp_x(1), f_x = apply_smooth(A_x); end
         if comp_x(3), C_x = apply_projector(x); end
         cur_pri = x; cur_dual = g_Ax;
         f_v = maxmin*(f_x+C_x);
+        v_is_x    = true; % 12/18/2013
     else
         if comp_y(2), [f_y,g_Ay] = apply_smooth(A_y);
         elseif comp_y(1), f_y = apply_smooth(A_y); end
         if comp_y(3), C_y = apply_projector(y); end
         cur_pri = y; cur_dual = g_Ay;
         f_v = maxmin*(f_y+C_y);
+        v_is_y    = true;
+        if data_collection_always_use_x
+            % save the data, otherwise it is overwritten
+            f_vy    = f_v;
+            dual_y  = cur_dual;
+        end
     end
     for err_j = 1 : numel(stopFcn),
         if saddle,
@@ -76,7 +86,8 @@ if (isempty(status) || ~isempty(findstr(status,'limit')) ) ...
             stop = stopFcn{err_j}(f_v,cur_pri);
         end
         if stop
-            status = sprintf('Reached user''s supplied stopping criteria no. %d',err_j);
+            if v_is_x, x_or_y_string = 'x'; else x_or_y_string = 'y'; end
+            status = sprintf('Reached user''s supplied stopping criteria no. %d using %s variable',err_j,x_or_y_string);
         end
     end
 end
@@ -118,7 +129,13 @@ if (stopCrit == 3 || stopCrit == 4 )
             d_dual = Inf;
         end
     end
-    if d_dual < tol
+    nLargeEnough = (n_iter > 2); % Dec '13
+    if restart > 10
+        nLargeEnough = (n_iter - restart_iter > 2);
+    end
+    if d_dual < tol  && nLargeEnough
+        % Problems when cur_dual is base on x one iteration
+        % and y another iteration
         status = 'Step size tolerance reached';
     end
 end
@@ -133,35 +150,49 @@ end
 % the solution at the end of the algorithm.
 %
 
-will_print = fid && printEvery && ( ~isempty( status ) || ~mod( n_iter, printEvery ) );
+will_print = fid && printEvery && ...
+    ( ~isempty( status ) || ~mod( n_iter, printEvery ) || (printRestart && just_restarted) );
 if saveHist || will_print,
-    f_x_save = f_x;
-    g_Ax_save = g_Ax;
-    if ~isempty(errFcn) && saddle,
-        if isempty(g_Ax),
-            [ f_x, g_Ax ] = smoothF( A_x );
+    % Which point to collect data at? Dec '13, by default, collect data
+    %   at the same point used to find f_v unless data_collection_always_use_x
+    % There is also the chance that the f_v wasn't calculated at all
+    if ( data_collection_always_use_x && ~v_is_x ) || ( ~v_is_x && ~v_is_y )
+        f_x_save = f_x;
+        g_Ax_save = g_Ax;
+        if ~isempty(errFcn) && saddle,
+            if isempty(g_Ax),
+                [ f_x, g_Ax ] = smoothF( A_x );
+            end
+%             out.dual = get_dual( g_Ax );
+            cur_dual = g_Ax ;
         end
-        out.dual = get_dual( g_Ax );
+        if isinf(f_x),
+            f_x = smoothF( A_x );
+        end
+        if isinf( C_x ),
+            C_x = projectorF( x );
+        end
+        f_v         = maxmin * ( f_x + C_x );
+        cur_pri     = x;
+        v_is_x      = true;
+        % Now undo any calculations
+        f_x         = f_x_save;
+        g_Ax        = g_Ax_save;
     end
-    if isinf(f_x),
-        f_x = smoothF( A_x );
-    end
-    if isinf( C_x ),
-        C_x = projectorF( x ); 
-    end
-    f_w = maxmin * ( f_x + C_x );
+    % (otherwise, f_v was already calculated)
+    
     if ~isempty(errFcn) && iscell(errFcn)
         for err_j = 1 : numel(errFcn),
             if saddle,
-                errs(err_j) = errFcn{err_j}(f_w,x,out.dual);
+%                 errs(err_j) = errFcn{err_j}(f_w,x,out.dual);
+                errs(err_j) = errFcn{err_j}(f_v,cur_pri,get_dual(cur_dual));
             else
-                errs(err_j) = errFcn{err_j}(f_w,x);
+                errs(err_j) = errFcn{err_j}(f_v,cur_pri);
             end
         end
     end
-    f_x = f_x_save;
-    g_Ax = g_Ax_save;
 end
+
 
 % Register a warning if the step size suggests a Lipschitz violation
 if isempty(status) && ( beta < 1 && backtrack_simple && localL > Lexact ),
@@ -179,7 +210,7 @@ if will_print,
         bchar = '*'; 
     end
 	fprintf( fid, '%-4d| %+12.5e  %8.2e  %8.2e%c', ...
-        n_iter, f_w, norm_dx / max( norm_x, 1 ), 1 / L, bchar );
+        n_iter, f_v, norm_dx / max( norm_x, 1 ), 1 / L, bchar );
     if countOps,
         fprintf( fid, '|' );
         fprintf( fid, ' %5d', tfocs_count___ );
@@ -223,6 +254,10 @@ if will_print,
         fprintf( fid, ' %8.2e', stopResid );
     end
     
+    if printRestart && just_restarted
+        fprintf( fid, ' | restarted');
+    end
+    
 	fprintf( fid, '\n');
 end
 
@@ -241,7 +276,7 @@ if saveHist,
             out.err(end+1:csize,:) = 0;
         end
     end
-    out.f(n_iter) = f_w;
+    out.f(n_iter) = f_v;
     out.theta(n_iter) = theta;
     out.stepsize(n_iter) = 1 / L;
     out.normGrad(n_iter) = norm_dx;
@@ -265,7 +300,19 @@ backtrack_steps = 0;
 % Fixed it.
 % two changes: (1) test is now ( maxmin*f_v > maxmin*f_v_old)
 %              (2) to reset f_v_old, set to maxmin*Inf, not just +Inf
-if n_iter - restart_iter == abs(round(restart)) || (restart < 0 && maxmin*f_v > maxmin*f_v_old),
+% Dec 2013, adding gradient-based restarting (see O'Donoghue and Candes '12)
+just_restarted  = false;
+do_auto_restart = false;
+if restart < 0
+    if strfind(lower(autoRestart),'gra')
+        do_auto_restart = tfocs_dot(g_Ay, A_x - A_x_old ) > 0;
+    elseif any(strfind(lower(autoRestart),'fun')) || any(strfind(lower(autoRestart),'obj'))
+        do_auto_restart = maxmin*f_v > maxmin*f_v_old;
+    else
+        error('bad value for opts.autoRestart. Should be ''gradient'' or ''function''');
+    end
+end
+if n_iter - restart_iter == abs(round(restart)) || do_auto_restart
     restart_iter = n_iter;
     backtrack_simple = true;
 	theta = Inf;
@@ -273,9 +320,12 @@ if n_iter - restart_iter == abs(round(restart)) || (restart < 0 && maxmin*f_v > 
     z = x; A_z = A_x; f_z = f_x; g_Az = g_Ax; g_z = g_x; C_z = C_x;
     f_v_old = maxmin*Inf; % important!
 %     continue;
+    just_restarted = true;
 elseif restart < 0,
     f_v_old = f_v;
 end
+
+C_y     = Inf;
 
 % TFOCS v1.3 by Stephen Becker, Emmanuel Candes, and Michael Grant.
 % Copyright 2013 California Institute of Technology and CVX Research.

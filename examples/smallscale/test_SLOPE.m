@@ -82,7 +82,8 @@ fprintf('\tl1-norm solution and original signal differ by %.2e (mean(lambda) = %
 
 %% Call the TFOCS solver
 er              = er_ref;  % error with reference solution (from IPM)
-opts = struct('restart',-Inf,'tol',1e-13,'maxits',1000, 'printEvery',10);
+opts = struct('restart',-Inf,'autoRestart','gradient', ...
+    'tol',1e-13,'maxits',1000, 'printEvery',10);
 opts.errFcn     = { @(f,primal) er(primal), ...
                     @(f,primal) f - obj_ref   }; 
 tic;

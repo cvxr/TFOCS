@@ -28,9 +28,14 @@ odef = struct( ...
     'alg',        'AT'  ,...
     'restart',    Inf   ,...
     'printStopCrit', false,...
-    'cntr_reset',  50   ,... % how often to explicitly recompute A*x and A*y (set to Inf if you want )
+    'cntr_reset',  -50   ,... % how often to explicitly recompute A*x and A*y (set to Inf if you want )
     'cg_restart', Inf   ,... % for CG only
     'cg_type',    'pr'  ,...  % for CG only
+    'stopping_criteria_always_use_x',   false, ...
+    'data_collection_always_use_x',     false, ...
+    'output_always_use_x',              false,  ...
+    'autoRestart',  'gra', ... % function or gradient
+    'printRestart', true, ...
     'debug',      false ....
     );
 
@@ -69,6 +74,7 @@ if nargin < 1 || ( nargin ==1 && isstruct( smoothF ) )
         desc.errFcn = 'Medium. User-specified error function. See user guide';
         desc.beta   = 'Medium. Backtracking parameter, in (0,1). No line search if >= 1';
         desc.alpha  = 'Medium. Line search increase parameter, in (0,1)';
+        desc.autoRestart= 'Medium. Set to ''gra'' or ''fun'' to choose behavior when restart<0';
 
         
         desc.maxCounts  = 'Advanced. Vector that fine-tunes various types of iteration limits; same form as countOps';
@@ -78,8 +84,13 @@ if nargin < 1 || ( nargin ==1 && isstruct( smoothF ) )
         desc.stopFcn    = 'Advanced. User-supplied stopping criteria. See user guide';
         desc.stopCrit   = 'Advanced. Controls which stopping criteria to use; 1,2, 3 or 4.';
         desc.printStopCrit = 'Advanced. Controls whether to display the value used in the stopping criteria';
-        desc.cntr_reset = 'Advanced. Controls how often to reset some numerical computatios to avoid roundoff';
+        desc.printRestart  = 'Advanced. Whether to signal when a restart happens';
+        desc.cntr_reset = 'Advanced. Controls how often to reset some numerical computations to avoid roundoff';
         desc.debug = 'Advanced.  Turns on more useful error messages';
+        
+        desc.stopping_criteria_always_use_x = 'Advanced. Forces usage of x, never y, in stopping crit.';
+        desc.data_collection_always_use_x   = 'Advanced. Forces usage of x, nevery y, in recording errors.';
+        desc.output_always_use_x            = 'Advanced. Forces output of x, never y. Default: uses whichever is better';
         
         desc.adjoint = 'Internal.';
         desc.saddle = 'Internal.  Used by TFOCS_SCD';
@@ -185,6 +196,14 @@ end
 % If maxCounts is set, set countOps to true
 if any(odef.maxCounts<Inf),
     odef.countOps = true;
+end
+% If cntr_reset is not set (signfied by being negative), set to defaults
+if odef.cntr_reset < 0
+    odef.cntr_reset = round(abs(odef.cntr_reset));
+    % and if we requested high precision, change the default
+    if odef.tol < 1e-12
+        odef.cntr_reset = 10; 
+    end
 end
 
 % Now move the options into the current workspace
@@ -551,7 +570,7 @@ status = '';
 % Initialize the iterate values
 y    = x;    z    = x;
 A_y  = A_x;  A_z  = A_x;
-C_y  = C_x;  C_z  = C_x;
+C_y  = Inf;  C_z  = C_x;
 f_y  = f_x;  f_z  = f_x;
 g_y  = g_x;  g_z  = g_x;
 g_Ay = g_Ax; g_Az = g_Ax;
@@ -591,6 +610,9 @@ if fid && printEvery,
     
     fprintf(fid,'\n');
 end
+
+% Initialize some variables
+just_restarted = false;
 
 % TFOCS v1.3 by Stephen Becker, Emmanuel Candes, and Michael Grant.
 % Copyright 2013 California Institute of Technology and CVX Research.
