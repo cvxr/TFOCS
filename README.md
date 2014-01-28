@@ -42,7 +42,7 @@ the results.
 ## Paper
 
 [Templates for convex cone problems ith applications to sparse signal
-recovery](https://github.com/mcg1969/TFOCS/raw/master/TFOCS.pdf)  
+recovery](https://github.com/mcg1969/TFOCS/raw/gh-pages/TFOCS.pdf)  
 by [S. Becker](http://ugcs.caltech.edu/~srbecker/), [E.
 Candès](http://statweb.stanford.edu/~candes/), and [M.
 Grant](http://cvxr.com/bio).  
@@ -52,7 +52,8 @@ Published in
 Number 3, August 2011.
 
 In the spirit of [reproducible research](http://reproducibleresearch.net/), we
-provide the [source code and data](http://cvxr.com/tfocs/TFOCS_paperExamplesOnly) 
+provide the 
+[source code and data](https://github.com/mcg1969/TFOCS/raw/gh-pages/TFOCS_paperExamplesOnly.zip) 
 (ZIP file, 9.7MB) used for the examples in the paper. You
 must have the TFOCS package installed to run these examples.
 
