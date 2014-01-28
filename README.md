@@ -52,9 +52,8 @@ Published in
 Number 3, August 2011.
 
 In the spirit of [reproducible research](http://reproducibleresearch.net/), we
-provide the [source code and data]
-paper](http://cvxr.com/tfocs/TFOCS_paperExamplesOnly) (ZIP file, 9.7MB)
-used for the examples in the paper. You
+provide the [source code and data](http://cvxr.com/tfocs/TFOCS_paperExamplesOnly) 
+(ZIP file, 9.7MB) used for the examples in the paper. You
 must have the TFOCS package installed to run these examples.
 
 ### Abstract
