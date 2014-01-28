@@ -65,7 +65,7 @@ a conic formulation of the problem; second, determine its dual; third, apply
 smoothing; and fourth, solve using an optimal first-order method. A merit of
 this approach is its flexibility: for example, all compressed sensing problems
 can be solved via this approach. These include models with objective
-functionals such as the total-variation norm, ∥Wx∥1 where W is arbitrary, or a
+functionals such as the total-variation norm, ||Wx||_1 where W is arbitrary, or a
 combination thereof. In addition, the paper also introduces a number of
 technical contributions such as a novel continuation scheme, a novel approach
 for controlling the step size, and some new results showing that the smooth
