@@ -7,7 +7,14 @@ function varargout = solver_sBPDN_W( A, W, b, epsilon, mu, x0, z0, opts, varargi
 %    by constructing and solving the composite dual.
 %    A and W must be a linear operator or matrix, and b must be a vector. The
 %    initial point x0 and the options structure opts are optional.
+%
+%    If "nonneg" is a field in "opts" and opts.nonneg is true,
+%       then the constraints are     norm(A*x-b,2) <= epsilon   AND  x >= 0
+%    If "box" is a field in "opts" and opts.box = [l,u]
+%       then the constraints are    norm(A*x-b,2) <= epsilon   AND  l <= x <= u
+%
 %    See also solver_sBPDN
+
 
 % Supply default values
 error(nargchk(5,9,nargin));
@@ -59,8 +66,37 @@ else
     prox        = { proj_Rn, proj_linf(proxScale) };
 end
 W           = linop_compose( W, 1 / proxScale );
+
+% Adding Jan 2014
+nonneg = false; box = false;
+if isfield(opts,'nonneg')
+    nonneg  = opts.nonneg;
+    opts = rmfield(opts,'nonneg');
+end
+if isfield(opts,'nonNeg')
+    nonneg  = opts.nonNeg;
+    opts = rmfield(opts,'nonNeg');
+end
+if nonneg       
+    % -- case: x >= 0 constraints
+    proxP    = proj_Rplus;
+else
+    % -- case: no x >= 0 constraint
+    proxP    = [];
+end
+if isfield(opts,'box')
+    box  = opts.box;
+    if length(box)==2
+        if nonneg, error('cannot use box constaints and non-neg constraints simultaneously');
+        end
+        proxP   = proj_box(box(1),box(2));
+    end
+    opts = rmfield(opts,'box');
+end
+
+
 [varargout{1:max(nargout,1)}] = ...
-    tfocs_SCD( [], { A, -b; W, 0 }, prox, mu, x0, z0, opts, varargin{:} );
+    tfocs_SCD( proxP, { A, -b; W, 0 }, prox, mu, x0, z0, opts, varargin{:} );
 
 % TFOCS v1.3 by Stephen Becker, Emmanuel Candes, and Michael Grant.
 % Copyright 2013 California Institute of Technology and CVX Research.
