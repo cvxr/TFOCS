@@ -532,6 +532,17 @@ end
 % Theta advancement function
 % if mu > 0 && Lexact > mu 
 if mu > 0 && ~isinf(Lexact) && Lexact > mu, % fixed Dec 2011
+    if ~strcmp(alg,'N83')
+        warnState = warning('query','backtrace');
+        warning off backtrace
+        warning('TFOCS:OptionsStructure',' Lexact and mu>0 specifications only give guaranteed convergence with N83 algorithm');
+        if strcmp(alg,'AT')
+            warning('TFOCS:OptionsStructure',' (With AT algorithm, known to give wrong solutions sometimes when mu>0)');
+        end
+        warning(warnState);
+    end
+    % Note that we have not yet derived theory to adapt this to
+    %   a local Lipschitz constant but that it should be possible
     theta_scale = sqrt(mu / Lexact);
     theta_scale = ( 1 - theta_scale ) / ( 1 + theta_scale );
     advance_theta = @(theta_old,L,L_old) min(1,theta_old*theta_scale);
