@@ -9,13 +9,13 @@ Candès](http://statweb.stanford.edu/~candes/) and  [Michael
 Grant](http://cvxr.com/bio).
 
 More information about the software can be found in the
-[paper](https://github.com/mcg1969/TFOCS/raw/master/TFOCS.pdf) and the 
-[users' guide](https://github.com/mcg1969/TFOCS/blob/master/userguide.pdf).
+[paper](https://github.com/cvxr/TFOCS/raw/master/TFOCS.pdf) and the 
+[users' guide](https://github.com/cvxr/TFOCS/blob/master/userguide.pdf).
 
 TFOCS is jointly owned by [CVX Research, Inc.](http://cvxr.com) and
 [Caltech](http://caltech.edu). As of October 2, 2013, it has been made freely
 available for both academic and commercial use under a 
-[BSD 3-Clause license](https://github.com/mcg1969/TFOCS/raw/master/LICENSE),
+[BSD 3-Clause license](https://github.com/cvxr/TFOCS/raw/master/LICENSE),
 subject to requirements of attribution and non-endorsement, 
 and a disclaimer of warranty contained therein.
 
@@ -32,7 +32,7 @@ examples and demos.
 ## Documentation / Demos
  
 The users' guide is included with the distribution, and available separately
-[here](https://github.com/mcg1969/TFOCS/raw/master/userguide.pdf).  
+[here](https://github.com/cvxr/TFOCS/raw/master/userguide.pdf).  
 [Click here](http://cvxr.com/tfocs/functions/) for a list of the functions
 included with TFOCS.  
 Several demonstrations are available [here](http://cvxr.com/tfocs/demos/).
@@ -42,7 +42,7 @@ the results.
 ## Paper
 
 [Templates for convex cone problems ith applications to sparse signal
-recovery](https://github.com/mcg1969/TFOCS/raw/gh-pages/TFOCS.pdf)  
+recovery](https://github.com/cvxr/TFOCS/raw/gh-pages/TFOCS.pdf)  
 by [S. Becker](http://ugcs.caltech.edu/~srbecker/), [E.
 Candès](http://statweb.stanford.edu/~candes/), and [M.
 Grant](http://cvxr.com/bio).  
@@ -53,7 +53,7 @@ Number 3, August 2011.
 
 In the spirit of [reproducible research](http://reproducibleresearch.net/), we
 provide the 
-[source code and data](https://github.com/mcg1969/TFOCS/raw/gh-pages/TFOCS_paperExamplesOnly.zip) 
+[source code and data](https://github.com/cvxr/TFOCS/raw/gh-pages/TFOCS_paperExamplesOnly.zip) 
 (ZIP file, 9.7MB) used for the examples in the paper. You
 must have the TFOCS package installed to run these examples.
 
@@ -113,7 +113,7 @@ communities include a number of active optimization experts.
 
 If you encounter a bug in TFOCS, or an error in the documentation, please
 submit an report on the [GitHub issue tracker for
-TFOCS](https://github.com/mcg1969/TFOCS/issues). In order for us to
+TFOCS](https://github.com/cvxr/TFOCS/issues). In order for us to
 effectively evaluate a bug report, we will need the following information:
 
 * The output of the tfocs_version command, which provides information about
