@@ -77,7 +77,7 @@ case 4,
     ndx    = find( cs - lambdas.*cd >= q+2*eps(q), 1, 'first');
     if ~isempty( ndx )
         ndx     = ndx - 1;
-        lambda  = ( cs(ndx) - q )/cd(ndx)
+        lambda  = ( cs(ndx) - q )/cd(ndx);
         x       = sign(x).*max( 0, abs(x) - lambda*d );
     end
 otherwise,
