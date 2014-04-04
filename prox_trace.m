@@ -4,15 +4,21 @@ function op = prox_trace( q, LARGESCALE, isReal )
 %    OP = PROX_TRACE( q ) implements the nonsmooth function
 %        OP(X) = q * sum(svd(X)) = q*tr(X) ( X >= 0 assumed )
 %    Q is optional; if omitted, Q=1 is assumed. But if Q is supplied, 
-%    it must be a positive real scalar.
+%    it must be a positive real scalar (the positivity is not necessary mathematically,
+%       so if you want q<0, set SIGMA=q*eye(n); see below )
 %    This function is a combination of the proximity function of the trace
 %    and projection onto the set of symmetric/Hermitian matrices.
 %
-%    OP = PROX_TRACE( q, LARGESCALE )
+%    OP = PROX_TRACE( SIGMA ) represents the function
+%       OP(X) = trace( SIGMA * X ), such that X >= 0
+%       Here, SIGMA should be a symmetric (or Hermitian) matrix, but need not
+%       be positive semidefinite
+%
+%    OP = PROX_TRACE( q/SIGMA, LARGESCALE )
 %       uses a Lanczos-based Eigenvalue decomposition if LARGESCALE == true,
 %       otherwise it uses a dense matrix Eigenvalue decomposition
 %
-%    OP = PROX_TRACE( q, LARGESCALE, isReal )
+%    OP = PROX_TRACE( q/SIGMA, LARGESCALE, isReal )
 %       also projects onto the set of real matrices if isReal=true.
 %
 %    CALLS = PROX_TRACE( 'reset' )
@@ -26,6 +32,8 @@ function op = prox_trace( q, LARGESCALE, isReal )
 % Dual: proj_spectral(q,'symm')
 % See also proj_spectral, prox_nuclear
 
+% April 4 2014, adding support for nonscalar q, i.e., q=SIGMA
+
 if nargin == 1 && strcmpi(q,'reset')
     op = prox_trace_impl;
     return;
@@ -33,8 +41,14 @@ end
 
 if nargin == 0,
 	q = 1;
-elseif ~isnumeric( q ) || ~isreal( q ) || numel( q ) ~= 1 || q <= 0,
+elseif ~isnumeric( q ) || ~isreal( q ) %|| numel( q ) ~= 1 || q <= 0,
 	error( 'Argument must be positive.' );
+elseif numel(q) ==1 && q<= 0
+    error('For now, argument must be positive. If you need negative, make q=-eye(n)');
+    % April 4, realized that since this is just linear, we do not need to restrict
+    %   q to be positive.
+elseif numel(q) >1 && norm(q-q','fro')/norm(q,'fro') > 1e-5
+    error('When q is a matrix, it must be symmetric/Hermitian');
 end
 if nargin < 2, LARGESCALE = []; end
 if nargin < 3 || isempty(isReal), isReal = false; end
@@ -59,7 +73,14 @@ if nargin >= 5 && t > 0,
     else
         largescale = ( numel(X) > 100^2 ) && issparse(X);
     end
-    tau = q*t;
+    if numel(q)==1
+        tau = q*t;
+    else
+        % q is really a matrix Sigma
+        % We can absorb this easily
+        X   = X - t*q;
+        tau = 0;
+    end
     nCalls = nCalls + 1;
     
     if ~largescale
@@ -125,10 +146,21 @@ if nargin >= 5 && t > 0,
         % And force it to be symmetric
         X = (X+X')/2;
     end
-    v = q * sum(s);
-
+    if numel(q)==1
+        v = q * sum(s);
+    else
+        % This is what we compute
+        %v   = tr( q'*X );
+        % but here is a faster way:
+        v   = q(:)'*X(:);
+    end
 else
-    v = q* trace( X + X' )/2;
+    if numel(q)==1
+        v = q* trace( X + X' )/2;
+    else
+        X = (X+X')/2;
+        v   = q(:)'*X(:);
+    end
 end
 
 end
