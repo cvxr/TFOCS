@@ -1,4 +1,4 @@
-function op = proj_psdUTrace( q, LARGESCALE, force_real, maxK )
+function op = proj_psdUTrace( q, LARGESCALE, force_real, maxK, Sigma )
 
 %PROJ_PSDUTRACE Projection onto the positive semidefinite cone with fixed trace.
 %    OP = PROJ_PSDUTRACE( q ) returns a function that implements the
@@ -17,6 +17,10 @@ function op = proj_psdUTrace( q, LARGESCALE, force_real, maxK )
 %    OP = PROJ_PSDUTRACE( q, LARGESCALE, forceReal, maxK ) will only
 %         use the Lanczos-solver if it expects fewer than maxK eigenvalues
 %
+%    OP = PROJ_PSDUTRACE( q, LARGESCALE, forceReal, maxK, Sigma ) 
+%         offsets the objective function by trace(Sigma'*X), that is,
+%         the overall function is trace(Sigma'*X) s.t. X >= 0, tr(X)==q
+%
 %    CALLS = PROJ_PSDUTRACE( 'reset' )
 %         resets the internal counter and returns the number of function calls
 %
@@ -31,9 +35,10 @@ function op = proj_psdUTrace( q, LARGESCALE, force_real, maxK )
 % Duals: the dual function is prox_maxEig, which also requires
 %   PSD inputs. The function prox_spectral(q,'sym') is also equivalent
 %   to prox_maxEig if given a PSD input.
-% See also prox_maxEig, prox_spectral, proj_simplex
+% See also prox_maxEig, prox_spectral, proj_simplex, prox_trace
 
 % Feb 15 2013, adding support for eigs calculations
+% Apr 14 2014, adding support for the offset Sigma
 
 
 if nargin == 1 && strcmpi(q,'reset')
@@ -53,20 +58,23 @@ end
 if nargin < 4 || isempty(maxK)
     maxK    = 100;
 end
+if nargin < 5 
+    Sigma = [];
+end
 if ~isempty( LARGESCALE ) && LARGESCALE
-    op = @(varargin)proj_psdUTrace_q_eigs( q, maxK, force_real, varargin{:} );
+    op = @(varargin)proj_psdUTrace_q_eigs( q, maxK, force_real, Sigma, varargin{:} );
 else
-    op = @(varargin)proj_psdUTrace_q( q, force_real, varargin{:} );
+    op = @(varargin)proj_psdUTrace_q( q, force_real, Sigma, varargin{:} );
 end
 
-function [ v, X ] = proj_psdUTrace_q_eigs( lambda, maxK, force_real, X, t )
+function [ v, X ] = proj_psdUTrace_q_eigs( lambda, maxK, force_real, Sigma, X, t )
 persistent oldRank
 persistent nCalls
 persistent V
 if nargin == 0, oldRank = []; v = nCalls; nCalls = []; V=[]; return; end
 if isempty(nCalls), nCalls = 0; end
 if isempty(maxK), maxK = size(X,1); end
-
+if isempty(force_real), force_real = false; end
 
 VECTORIZE   = false;
 if size(X,1) ~= size(X,2)
@@ -76,15 +84,20 @@ if size(X,1) ~= size(X,2)
     VECTORIZE   = true;
 end
 v = 0;
+if ~isempty(Sigma) % added April 14 2014
+    X = X - t*Sigma;
+end
 X = full(0.5*(X+X')); % added 'full' Sept 5 2012
 if force_real % added Nov 23 2012
     X = real(X);
+else
+    is_real     = isreal(X);
 end
-if nargin > 4 && t > 0
+if nargin > 5 && t > 0
     
     opts = [];
     opts.tol = 1e-10;
-    if force_real
+    if force_real || is_real
         opts.issym = true; 
         SIGMA       = 'LA'; % get largest eigenvalues (NOT in magnitude)
     else
@@ -148,7 +161,9 @@ if nargin > 4 && t > 0
     
 
     nCalls = nCalls + 1;
-
+    if ~isempty(Sigma)
+        v = Sigma(:)'*X(:);
+    end
     if VECTORIZE, X = X(:); end
 elseif any(eig(X)<0) || trace(X) > lambda
     v = Inf;
@@ -156,7 +171,7 @@ end
 
 
 
-function [ v, X ] = proj_psdUTrace_q( lambda, force_real, X, t )
+function [ v, X ] = proj_psdUTrace_q( lambda, force_real, Sigma, X, t )
 persistent nCalls
 if nargin == 0, v = nCalls; nCalls = []; return; end
 if isempty(nCalls), nCalls = 0; end
@@ -171,17 +186,23 @@ if size(X,1) ~= size(X,2)
     VECTORIZE   = true;
 end
 v = 0;
+if ~isempty(Sigma) % added April 14 2014
+    X = X - t*Sigma;
+end
 X = full(0.5*(X+X')); % added 'full' Sept 5 2012
 if force_real % added Nov 23 2012
     X = real(X);
 end
-if nargin > 3 && t > 0,
+if nargin > 4 && t > 0,
     nCalls = nCalls + 1;
     [V,D]=eig(X);
     [dum,D] = eproj(diag(D),t);
     tt = D > 0;
     V  = bsxfun(@times,V(:,tt),sqrt(D(tt,:))');
     X  = V * V';
+    if ~isempty(Sigma)
+        v = Sigma(:)'*X(:);
+    end
     if VECTORIZE, X = X(:); end
 elseif any(eig(X)<0) || trace(X) > lambda
     v = Inf;
