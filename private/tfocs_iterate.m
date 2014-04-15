@@ -185,7 +185,12 @@ if saveHist || will_print,
         for err_j = 1 : numel(errFcn),
             if saddle,
 %                 errs(err_j) = errFcn{err_j}(f_w,x,out.dual);
-                errs(err_j) = errFcn{err_j}(f_v,cur_pri,get_dual(cur_dual));
+                % April 14 '14
+                if isempty( get_dual(cur_dual) )
+                    errs(err_j) = errFcn{err_j}(f_v,cur_pri,0);
+                else
+                    errs(err_j) = errFcn{err_j}(f_v,cur_pri,get_dual(cur_dual));
+                end
             else
                 errs(err_j) = errFcn{err_j}(f_v,cur_pri);
             end
