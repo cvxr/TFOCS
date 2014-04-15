@@ -30,7 +30,7 @@ function op = prox_trace( q, LARGESCALE, isReal )
 % implementations of TFOCS will be able to handle low-rank matrices 
 % more effectively.
 % Dual: proj_spectral(q,'symm')
-% See also proj_spectral, prox_nuclear
+% See also proj_spectral, prox_nuclear, proj_psdUTrace
 
 % April 4 2014, adding support for nonscalar q, i.e., q=SIGMA
 
