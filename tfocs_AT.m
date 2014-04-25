@@ -32,7 +32,7 @@ while true,
 		% Next iterate
         if theta < 1,
             y   = ( 1 - theta ) *   x_old + theta *   z_old;
-            if cntr_Ay > cntr_reset 
+            if cntr_Ay >= cntr_reset  % change from > to >=, 4/24/14
                 % every so often, we compute this explicitly,
                 %   to avoid roundoff errors that might accumulate
                 A_y = apply_linear( y, 1 );
@@ -63,7 +63,7 @@ while true,
             C_x = C_z;
         else
             x   = ( 1 - theta ) *   x_old + theta *   z;
-            if cntr_Ax > cntr_reset     % see above comments for cntr_Ay
+            if cntr_Ax >= cntr_reset     % see above comments for cntr_Ay
                 cntr_Ax = 0;
                 A_x = apply_linear( x, 1 );
             else

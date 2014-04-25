@@ -8,6 +8,8 @@ if beta >= 1, break; end % SRB changing == to >=
 xy = x - y;
 xy_sq = tfocs_normsq( xy );
 if xy_sq == 0, localL = Inf; break; end
+%fprintf('xy_sq/x is %.2e\n', xy_sq/tfocs_normsq(x) );
+if xy_sq/tfocs_normsq(x) < eps, cntr_Ax=Inf; end % force a reset
 
 % Compute Lipschitz estimate
 if backtrack_simple,

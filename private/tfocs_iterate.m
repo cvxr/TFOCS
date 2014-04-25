@@ -29,7 +29,7 @@ elseif n_iter == maxIts,
 elseif countOps && any( tfocs_count___ >= maxCounts ),
 	status = 'Function/operator count limit reached';
 elseif backtrack_steps > 0 && xy_sq == 0,
-    status = 'Unexpectedly small stepsize';
+    status = sprintf('Unexpectedly small stepsize after %d backtrack steps',backtrack_steps);
 end
 
 % for stopCrit 3, we need the new and old dual points
