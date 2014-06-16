@@ -16,7 +16,11 @@ elseif ~isnumeric( q ) || ~isreal( q ) || numel( q ) ~= 1 || q <= 0,
 end
 
 % In r2007a and later, we can use bsxfun instead of the spdiags trick
-vr=version('-release');
+if exist('OCTAVE_VERSION','builtin')
+    vr = '2000';
+else
+    vr=version('-release');
+end
 if str2num(vr(1:4)) >= 2007
     op = @(varargin)proj_linfl2_q_bsxfun( q, varargin{:} );
 else
