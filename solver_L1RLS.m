@@ -11,7 +11,7 @@ function [ x, odata, opts ] = solver_L1RLS( A, b, lambda, x0, opts )
 %   Note: this formulation is sometimes referred to as "The Lasso"
 %
 %    If "nonneg" is a field in "opts" and opts.nonneg is true,
-%       then the constraints are   A * x == b   AND  x >= 0
+%       then the constraint x >= 0 is also imposed
 
 error(nargchk(3,5,nargin));
 if nargin < 4, x0 = []; end
