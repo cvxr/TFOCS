@@ -9,6 +9,9 @@ function [ x, odata, opts ] = solver_L1RLS( A, b, lambda, x0, opts )
 %    both optional.
 %
 %   Note: this formulation is sometimes referred to as "The Lasso"
+%
+%    If "nonneg" is a field in "opts" and opts.nonneg is true,
+%       then the constraints are   A * x == b   AND  x >= 0
 
 error(nargchk(3,5,nargin));
 if nargin < 4, x0 = []; end
@@ -17,7 +20,23 @@ if ~isfield( opts, 'restart' ),
     opts.restart = 100; 
 end
 
-[x,odata,opts] = tfocs( smooth_quad, { A, -b }, prox_l1( lambda ), x0, opts );
+nonneg = false;
+if isfield(opts,'nonneg')
+    nonneg  = opts.nonneg;
+    opts = rmfield(opts,'nonneg');
+end
+if isfield(opts,'nonNeg')
+    nonneg  = opts.nonNeg;
+    opts = rmfield(opts,'nonNeg');
+end
+
+if nonneg
+    prox    = prox_l1pos( lambda );
+else
+    prox    = prox_l1( lambda );
+end
+
+[x,odata,opts] = tfocs( smooth_quad, { A, -b }, prox, x0, opts );
 
 % TFOCS v1.3 by Stephen Becker, Emmanuel Candes, and Michael Grant.
 % Copyright 2013 California Institute of Technology and CVX Research.
