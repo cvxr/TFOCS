@@ -10,6 +10,9 @@ function op = prox_l2( q )
 %       of OP(x) = norm( q.*X, 'fro' )
 %    In the limit q --> 0, this function acts like prox_0 (aka proj_Rn)
 % Dual: proj_l2.m
+% For the proximity operator of the l2 squared norm (that is, norm(X,'fro')^2)
+%   use smooth_quad.m (which can be used in either a smooth gradient-based fashion
+%   but also supports proximity usage). Note smooth_quad() is self-dual.
 % See also proj_l2, prox_0, proj_Rn
 
 % Feb '11, allowing for q to be a vector
