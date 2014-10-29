@@ -1,23 +1,39 @@
-function op = prox_nuclear( q, LARGESCALE )
-
+function op = prox_nuclear( q, SVD_STYLE )
 %PROX_NUCLEAR    Nuclear norm.
 %    OP = PROX_NUCLEAR( q ) implements the nonsmooth function
 %        OP(X) = q * sum(svd(X)).
 %    Q is optional; if omitted, Q=1 is assumed. But if Q is supplied, 
 %    it must be a positive real scalar.
 %
-%    OP = PROX_NUCLEAR( q, LARGESCALE )
-%       uses a Lanczos-based SVD if LARGESCALE == true,
+%    OP = PROX_NUCLEAR( q, SVD_STYLE )
+%       uses a Lanczos-based SVD based on PROPACK
+%       if SVD_STYLE == 1 or 'propack',
+%
+%       or Matlab's Lanczos-based SVDS is SVD_STYLE == 2 or 'arpack'
+%       (calls SVDS, which calls EIGS, which uses ARPACK)
+%
+%       or a randomized algorithm based on [1] if SVD_STYLE==3 or 
+%       'randomized'
+%
 %       otherwise it uses a dense matrix SVD
+%
+%       (default: dense matrix SVD if X is dense and less than 300^2
+%        elements, otherwise the randomized algorithm)
 %
 %    CALLS = PROX_NUCLEAR( 'reset' )
 %       resets the internal counter and returns the number of function
 %       calls
 %
+% [1] "Finding Structure with Randomness: Probabilistic Algorithms 
+% for Constructing Approximate Matrix Decompositions"
+% by N. Halko, P. G. Martinsson, and J. A. Tropp. SIAM Review vol 53 2011.
+% http://epubs.siam.org/doi/abs/10.1137/090771806
+%
 % This implementation uses a naive approach that does not exploit any
 % a priori knowledge that X and G are low rank or sparse. Future
 % implementations of TFOCS will be able to handle low-rank matrices 
 % more effectively.
+%
 % Dual: proj_spectral.m
 % See also prox_trace.m  and proj_spectral.m
 
@@ -31,16 +47,16 @@ if nargin == 0,
 elseif ~isnumeric( q ) || ~isreal( q ) || numel( q ) ~= 1 || q <= 0,
 	error( 'Argument must be positive.' );
 end
-if nargin < 2, LARGESCALE = []; end
+if nargin < 2, SVD_STYLE = []; end
 
 % clear the persistent values:
 prox_nuclear_impl();
 
-op = @(varargin)prox_nuclear_impl( q, LARGESCALE, varargin{:} );
+op = @(varargin)prox_nuclear_impl( q, SVD_STYLE, varargin{:} );
 
 end % end of main function
 
-function [ v, X ] = prox_nuclear_impl( q, LARGESCALE, X, t )
+function [ v, X ] = prox_nuclear_impl( q, SVD_STYLE, X, t )
 persistent oldRank
 persistent nCalls
 if nargin == 0, oldRank = []; v = nCalls; nCalls = []; return; end
@@ -53,42 +69,71 @@ if ND, % X is a vector, not a matrix, so reshape it
     X = reshape( X, prod(sx(1:end-1)), sx(end) );
 end
 
+% Determine which SVD we will use:
+% 0 = dense
+% 1 = PROPACK
+% 2 = ARPACK
+% 3 = Randomized
+if isempty(SVD_STYLE)
+    % use a default
+    if numel(X) > 300^2 || issparse(X)
+        SVD_STYLE = 'randomized';
+    else
+        SVD_STYLE = 'dense';
+    end
+end
+SVD_STYLE = lower(SVD_STYLE);
+switch SVD_STYLE
+    case {1,'propack'}
+        if ~exist('lansvd','file')
+            warning(...
+                'TFOCS:prox_nuclear',...
+                'Cannot find lansvd.m, required by PROPACK; using default SVD_type');
+            SVD_STYLE = 'arpack';
+        end
+    case {3,'randomized'}
+        if ~exist('randomizedSVD','file')
+            warning(...
+                'TFOCS:prox_nuclear',...
+                'Cannot find randomizedSVD.m, required by SVD_TYPE; using default SVD_type');
+            SVD_STYLE = 'arpack';
+        end
+end
+% Define [U,S,V] = svdFcn( X, K, opt )
+switch SVD_STYLE
+    case {1,'propack'}
+        svdFcn = @(X,K,opt) lansvd( K, K, 'L', opt );
+    case {2,'arpack'};
+        svdFcn = @(X,K,opt) svds(X,K,'L',opt);
+    case {3,'randomized'}
+        nPower  = 3;
+        svdFcn = @(X,K,opt) randomizedSVD( X, K, K+10, nPower );
+end
+
 if nargin > 3 && t > 0,
     
-    if ~isempty(LARGESCALE) % inherited from parent
-        largescale = LARGESCALE;
-    else
-        largescale = ( numel(X) > 100^2 ) && issparse(X);
-    end
     tau = q*t;
     nCalls = nCalls + 1;
     
-%     fprintf('ranks: ');
-    if ~largescale
+    if isequal(SVD_STYLE,0) || strcmpi(SVD_STYLE,'dense')
         [U,S,V] = svd( full(X), 'econ' );
     else
         % Guess which singular value will have value near tau:
         [M,N] = size(X);
         if isempty(oldRank), K = 10;
-        else, K = oldRank + 2;
+        else K = oldRank + 2;
         end
         
         ok = false;
-        opts = [];
-        opts.tol = 1e-10; % the default in svds
-        opt  = [];
-        opt.eta = eps; % makes compute_int slow
+        opts = struct('tol',1e-10); % 1e-10 is default in svds
+        % These fields are used by lansvd, otherwise are ignored
+        opts.eta = eps; % makes compute_int slow
 %         opt.eta = 0;  % makes reorth slow
-        opt.delta = 10*opt.eta;
+        opts.delta = 10*opts.eta;
         while ~ok
             K = min( [K,M,N] );
-            if exist('lansvd','file')
-                [U,S,V] = lansvd(X,K,'L',opt );
-            else
-                [U,S,V] = svds(X,K,'L',opts);
-            end
+            [U,S,V] = svdFcn(X,K,opts );
             ok = (min(diag(S)) < tau) || ( K == min(M,N) );
-%             fprintf('%d ',K );
             if ok, break; end
 %             K = K + 5;
             K = 2*K;
@@ -102,7 +147,6 @@ if nargin > 3 && t > 0,
                 opts.tol = 1e-1;
             end
             if K > min(M,N)/2
-%                 disp('Computing explicit SVD');
                 [U,S,V] = svd( full(X), 'econ' );
                 ok = true;
             end
@@ -112,13 +156,8 @@ if nargin > 3 && t > 0,
     s  = diag(S) - tau;
     tt = s > 0;
     s  = s(tt,:);
-    
-%     fprintf('\n')';
-%     fprintf('rank is %d\n', length(tt) );
-    
-    % Check to make sure this doesn't break existing code...
+
     if isempty(s),
-%         X(:) = 0;  % this line breaks the packSVD version
         X = tfocs_zeros(X);
     else
         X = U(:,tt) * bsxfun( @times, s, V(:,tt)' );

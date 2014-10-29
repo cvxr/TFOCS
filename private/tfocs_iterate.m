@@ -63,31 +63,35 @@ if (isempty(status) || ~isempty(findstr(status,'limit')) ) ...
         if comp_x(2), [f_x,g_Ax] = apply_smooth(A_x);
         elseif comp_x(1), f_x = apply_smooth(A_x); end
         if comp_x(3), C_x = apply_projector(x); end
-        cur_pri = x; cur_dual = g_Ax;
+        cur_pri = x; 
+        if saddle, cur_dual = g_Ax; end
         f_v = maxmin*(f_x+C_x);
         v_is_x    = true; % 12/18/2013
     else
         if comp_y(2), [f_y,g_Ay] = apply_smooth(A_y);
         elseif comp_y(1), f_y = apply_smooth(A_y); end
         if comp_y(3), C_y = apply_projector(y); end
-        cur_pri = y; cur_dual = g_Ay;
+        cur_pri = y; 
+        if saddle, cur_dual = g_Ay; end
         f_v = maxmin*(f_y+C_y);
         v_is_y    = true;
         if data_collection_always_use_x
             % save the data, otherwise it is overwritten
             f_vy    = f_v;
-            dual_y  = cur_dual;
+            if saddle, dual_y  = cur_dual; end
         end
     end
     for err_j = 1 : numel(stopFcn),
-        if saddle,
-            stop = stopFcn{err_j}(f_v,cur_pri, get_dual(cur_dual) );
-        else
-            stop = stopFcn{err_j}(f_v,cur_pri);
-        end
-        if stop
-            if v_is_x, x_or_y_string = 'x'; else x_or_y_string = 'y'; end
-            status = sprintf('Reached user''s supplied stopping criteria no. %d using %s variable',err_j,x_or_y_string);
+        if isa(stopFcn,'function_handle') % added Oct 27 '14
+            if saddle,
+                stop = stopFcn{err_j}(f_v,cur_pri, get_dual(cur_dual) );
+            else
+                stop = stopFcn{err_j}(f_v,cur_pri);
+            end
+            if stop
+                if v_is_x, x_or_y_string = 'x'; else x_or_y_string = 'y'; end
+                status = sprintf('Reached user''s supplied stopping criteria no. %d using %s variable',err_j,x_or_y_string);
+            end
         end
     end
 end
@@ -182,6 +186,7 @@ if saveHist || will_print,
     % (otherwise, f_v was already calculated)
     
     if ~isempty(errFcn) && iscell(errFcn)
+        errs = zeros(1,numel(errFcn));
         for err_j = 1 : numel(errFcn),
             if saddle,
 %                 errs(err_j) = errFcn{err_j}(f_w,x,out.dual);
@@ -195,7 +200,23 @@ if saveHist || will_print,
                 errs(err_j) = errFcn{err_j}(f_v,cur_pri);
             end
         end
+    
+        % Oct 27 '14. If stopFcn is a number, then we stop
+        %   if errFcn(1) is less than or equal to this number
+        if ~isempty(stopFcn)
+            for err_j = 1 : numel(stopFcn),
+                if isnumeric(stopFcn{err_j})
+                    stop = errs(1) <= stopFcn{err_j};
+                    if stop
+                        status = sprintf(...
+                            'Reached user''s supplied stopping criteria of %.2e',stopFcn{err_j});
+                    end
+                end
+            end
+        end
+    
     end
+    
 end
 
 
