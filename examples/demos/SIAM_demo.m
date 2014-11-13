@@ -66,7 +66,7 @@
 
 % Load the data:
 disp('Please download the escalator_data.m (3.7 MB) file from:')
-disp('  http://tfocs.stanford.edu/demos/rpca/escalator_data.mat');
+disp('  http://cvxr.com/tfocs/demos/rpca/escalator_data.mat');
 load escalator_data % contains X (data), m and n (height and width)
 X = double(X);
 
