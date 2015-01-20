@@ -50,7 +50,7 @@ function [ v, g ] = smooth_huber_impl(vector,x)
       error('smooth_huber: tau must be positive')
   end
   smallSet    = ( abs(x) <= tau );
-  v           = smallSet.*( 0.5*(x.^2)./tau ) + (~smallSet).*( abs(x) - tau/2) ;
+  v           = smallSet.*( 0.5*(abs(x).^2)./tau ) + (~smallSet).*( abs(x) - tau/2) ;
   if ~vector
       % This is the default behavior: take the sum
       v     = sum(v);
