@@ -62,14 +62,16 @@ switch nargin
     case 3
         % the function is being used in a "nonsmooth" fashion
         % i.e. return g = argmin_g  -q*log(det(g)) + 1/(2t)||g-x||^2
+        x = full(x+x')/2;  % March 2015, project it to be symmetric
         [V,D]   = eig(x);
         d       = diag(D);
-        if any(d<=0),
-            v   = Inf;
-            g   = nan(size(x));
-            return;
-%             error('log_det requires a positive definite point'); 
-        end
+        % This is OK: input need not be pos def
+        %if any(d<=0),
+            %v   = Inf;
+            %g   = nan(size(x));
+            %return;
+%%             error('log_det requires a positive definite point'); 
+        %end
         l       = ( d + sqrt( d.^2 + 4*t*q ) )/2;
         g       = V*diag(l)*V';
         v       = -q*sum(log(l));
@@ -104,15 +106,11 @@ switch nargin
     case 4
         % the function is being used in a "nonsmooth" fashion
         % i.e. return g = argmin_g  -q*log(det(g)) + 1/(2t)||g-x||^2
-        x       = x - t*C;  % hope that this remains pos. def.!
+        x       = x - t*C;  
+        x = full(x+x')/2;  % March 2015, project it to be symmetric
         [V,D]   = eig(x);
         d       = diag(D);
-        if any(d<=0), 
-            v   = Inf;
-            g   = nan(size(x));
-            return;
-%             error('log_det requires a positive definite point'); 
-        end
+        % This is OK: input need not be pos def
         l       = ( d + sqrt( d.^2 + 4*t*q ) )/2;
         g       = V*diag(l)*V';
         v       = -q*sum(log(l));
