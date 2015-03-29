@@ -59,6 +59,7 @@ end % end of main function
 function [ v, X ] = prox_nuclear_impl( q, SVD_STYLE, X, t )
 persistent oldRank
 persistent nCalls
+persistent V_save
 if nargin == 0, oldRank = []; v = nCalls; nCalls = []; return; end
 if isempty(nCalls), nCalls = 0; end
 
@@ -99,15 +100,23 @@ switch SVD_STYLE
             SVD_STYLE = 'arpack';
         end
 end
+
+opts = struct('tol',1e-10); % 1e-10 is default in svds
 % Define [U,S,V] = svdFcn( X, K, opt )
 switch SVD_STYLE
     case {1,'propack'}
-        svdFcn = @(X,K,opt) lansvd( K, K, 'L', opt );
+        % These fields are used by lansvd, otherwise are ignored
+        opts.eta = eps; % makes compute_int slow
+        %opt.eta = 0;  % makes reorth slow
+        opts.delta = 10*opts.eta;
+        svdFcn = @(X,K,opt) lansvd( X, K, 'L', opt ); % fixed bug, 3/29/15
     case {2,'arpack'};
         svdFcn = @(X,K,opt) svds(X,K,'L',opt);
     case {3,'randomized'}
-        nPower  = 3;
-        svdFcn = @(X,K,opt) randomizedSVD( X, K, K+10, nPower );
+        nPower      = 2; % 2 or 3 is good
+        overSample  = 20;
+        warning('off','randomizedSVD:warmStartLarge');
+        svdFcn = @(X,K,opt) randomizedSVD( X, K, K+overSample, nPower, [], struct( 'warmStart', V_save ) );
 end
 
 if nargin > 3 && t > 0,
@@ -125,11 +134,7 @@ if nargin > 3 && t > 0,
         end
         
         ok = false;
-        opts = struct('tol',1e-10); % 1e-10 is default in svds
-        % These fields are used by lansvd, otherwise are ignored
-        opts.eta = eps; % makes compute_int slow
-%         opt.eta = 0;  % makes reorth slow
-        opts.delta = 10*opts.eta;
+
         while ~ok
             K = min( [K,M,N] );
             [U,S,V] = svdFcn(X,K,opts );
@@ -161,6 +166,10 @@ if nargin > 3 && t > 0,
         X = tfocs_zeros(X);
     else
         X = U(:,tt) * bsxfun( @times, s, V(:,tt)' );
+    end
+    switch SVD_STYLE
+        case {3,'randomized'}
+            V_save  = V;
     end
 else
     s = svd(full(X)); % could be expensive!
