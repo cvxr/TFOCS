@@ -12,7 +12,7 @@ function op = prox_l1l2( q )
 %    is calculated.
 %
 % Dual: proj_linfl2.m
-% See also proj_linfl2.m
+% See also proj_linfl2.m, proj_l1l2.m
 
 if nargin == 0,
 	q = 1;
@@ -34,7 +34,7 @@ else
 end
 
 function v = f(q,x)
-    if numel(q) ~= 1 && size(q,1) ~= size(x,1)
+    if numel(q) ~= 1 || size(q,1) ~= size(x,1)
         error('Weight must be a scalar or a column vector');
     end
     v = sum( q.* sqrt(sum(x.^2,2)) );
