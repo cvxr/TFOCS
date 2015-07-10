@@ -85,9 +85,27 @@ if nargin >= 5 && t > 0,
     
     if ~largescale
         if isReal
-            [V,D]   = eig(real(full((X+X')/2)));
+            % July 10 2015, adding try-catch statement
+            % to deal with bug in eig() sometimes
+            try
+                [V,D]   = eig(real(full((X+X')/2)));
+            catch ME
+                if (strcmpi(ME.identifier,'MATLAB:eig:NoConvergence'))
+                    [V,D]   = eig(real(full((X+X')/2)),eye(size(X)));
+                else
+                    rethrow(ME);
+                end
+            end
         else
-            [V,D]   = eig(full((X+X')/2));
+            try
+                [V,D]   = eig(full((X+X')/2));
+            catch ME
+                if (strcmpi(ME.identifier,'MATLAB:eig:NoConvergence'))
+                    [V,D]   = eig(full((X+X')/2),eye(size(X)));
+                else
+                    rethrow(ME);
+                end
+            end
         end
     else
 
@@ -113,7 +131,15 @@ if nargin >= 5 && t > 0,
             K = min( [K,M,N] );
             
             if K > min(M,N)/2
-                [V,D]   = eig(full((X+X')/2));
+                try
+                    [V,D]   = eig(full((X+X')/2));
+                catch ME
+                    if (strcmpi(ME.identifier,'MATLAB:eig:NoConvergence'))
+                        [V,D]   = eig(full((X+X')/2),eye(size(X)));
+                    else
+                        rethrow(ME);
+                    end
+                end
                 ok = true;
                 break;
             end
