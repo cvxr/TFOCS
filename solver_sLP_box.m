@@ -16,6 +16,8 @@ function varargout = solver_sLP_box( c, A, b, l, u, mu, x0, z0, opts, varargin )
 %       via opts.normA
 %   (e.g. opts.normA = norm(A) or opts.normA = normest(A))
 %
+% July 13, 2015, algorithmic change to improve the performance.
+%
 %   See also solver_sLP
 
 % Supply default values
@@ -63,18 +65,26 @@ if isempty(l) && isempty(u)
     % There is no x >= 0 constraint:
     [varargout{1:max(nargout,1)}] = ...
         tfocs_SCD( obj, { A, -b }, proj_Rn, mu, x0, z0, opts, varargin{:} );
-elseif isempty(u)
-    % There is a x >= l constraint, i.e. x - l >= 0
-    [varargout{1:max(nargout,1)}] = ...
-        tfocs_SCD( obj, { 1,-l;A,-b}, {proj_Rplus,proj_Rn}, mu, x0, z0, opts, varargin{:} );
-elseif isempty(l)
-    % There is a x <= u constraint, i.e. -x + u >= 0
-    [varargout{1:max(nargout,1)}] = ...
-        tfocs_SCD( obj, {-1, u;A,-b}, {proj_Rplus,proj_Rn}, mu, x0, z0, opts, varargin{:} );
 else
-    % have both upper and lower box constraints
+    % added Juy 13, 2015
+    % This has fewer dual variables and should be much better!
+    obj = prox_shift( proj_box(l,u), c );
+    
     [varargout{1:max(nargout,1)}] = ...
-        tfocs_SCD( obj, {1,-l;-1, u;A,-b}, {proj_Rplus,proj_Rplus,proj_Rn}, mu, x0, z0, opts, varargin{:} );
+        tfocs_SCD( obj, { A, -b }, proj_Rn, mu, x0, z0, opts, varargin{:} );
+    
+% elseif isempty(u)
+%     % There is a x >= l constraint, i.e. x - l >= 0
+%     [varargout{1:max(nargout,1)}] = ...
+%         tfocs_SCD( obj, { 1,-l;A,-b}, {proj_Rplus,proj_Rn}, mu, x0, z0, opts, varargin{:} );
+% elseif isempty(l)
+%     % There is a x <= u constraint, i.e. -x + u >= 0
+%     [varargout{1:max(nargout,1)}] = ...
+%         tfocs_SCD( obj, {-1, u;A,-b}, {proj_Rplus,proj_Rn}, mu, x0, z0, opts, varargin{:} );
+% else
+%     % have both upper and lower box constraints
+%     [varargout{1:max(nargout,1)}] = ...
+%         tfocs_SCD( obj, {1,-l;-1, u;A,-b}, {proj_Rplus,proj_Rplus,proj_Rn}, mu, x0, z0, opts, varargin{:} );
 end
 
 % TFOCS v1.3 by Stephen Becker, Emmanuel Candes, and Michael Grant.

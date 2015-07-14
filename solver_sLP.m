@@ -15,6 +15,11 @@ function varargout = solver_sLP( c, A, b, mu, x0, z0, opts, varargin )
 %   For maximum efficiency, the user should specify the spectral norm of A,
 %       via opts.normA
 %   (e.g. opts.normA = norm(A) or opts.normA = normest(A))
+%
+% July 13 2015, algorithm updated for x>=0 case. 
+%   Uses many fewer dual variables now,
+%   convergence is faster, and the primal variable is guaranteed
+%   to always be non-negative.
 
 % Supply default values
 error(nargchk(4,8,nargin));
@@ -72,8 +77,12 @@ if ~NONNEG
         tfocs_SCD( obj, { A, -b }, proj_Rn, mu, x0, z0, opts, varargin{:} );
 else
     % There is a x >= 0 constraint:
+%     [varargout{1:max(nargout,1)}] = ...
+%         tfocs_SCD( obj, { 1,0;A,-b}, {proj_Rplus,proj_Rn}, mu, x0, z0, opts, varargin{:} );
+    % New, July 13 2015, exploting new prox_shift function. Much better!
+    obj = prox_shift(proj_Rplus,c);
     [varargout{1:max(nargout,1)}] = ...
-        tfocs_SCD( obj, { 1,0;A,-b}, {proj_Rplus,proj_Rn}, mu, x0, z0, opts, varargin{:} );
+        tfocs_SCD( obj, { A, -b }, proj_Rn, mu, x0, z0, opts, varargin{:} );
 end
 
 % TFOCS v1.3 by Stephen Becker, Emmanuel Candes, and Michael Grant.
