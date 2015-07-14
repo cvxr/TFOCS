@@ -24,6 +24,8 @@ function varargout = solver_sSDP( c, A, b, mu, x0, z0, opts, varargin )
 %   or specify opts.cmode = 'C2R'
 %       (note: cmode = 'C2C' is not supported)
 %
+% July 2015, improved model. Fewer dual variables, faster convergence.
+%
 %   See also solver_sLMI
 
 % Supply default values
@@ -84,17 +86,23 @@ A      = linop_compose( A, 1 / normA );
 b      = b/normA;
 
 
-obj    = smooth_linear(c);
+% obj    = smooth_linear(c);
+% [varargout{1:max(nargout,1)}] = ...
+%     tfocs_SCD( obj, { 1,0;A,-b}, {proj_psd,proj_Rn}, mu, x0, z0, opts, varargin{:} );
+% ind = 2;
 
+% July 13 2015, better model (fewer dual variables)
+obj     = prox_shift( proj_psd, c );
 [varargout{1:max(nargout,1)}] = ...
-    tfocs_SCD( obj, { 1,0;A,-b}, {proj_psd,proj_Rn}, mu, x0, z0, opts, varargin{:} );
+    tfocs_SCD( obj, {A,-b}, proj_Rn, mu, x0, z0, opts, varargin{:} );
+ind = 1;
 
 % and undo the scaling by normA:
-if nargout >= 2 && isfield( varargout{2},'dual' ) && normA ~= 1
+if nargout >= 2 && isfield( varargout{1},'dual' ) && normA ~= 1
     if isa( varargout{2}.dual,'tfocs_tuple')
         varargout{2}.dual = tfocs_tuple( {varargout{2}.dual{1},  varargout{2}.dual{2}/normA });
     else
-        varargout{2}.dual{2} = varargout{2}.dual{2}/normA;
+        varargout{2}.dual{ind} = varargout{2}.dual{ind}/normA;
     end
 end
 

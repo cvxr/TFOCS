@@ -128,7 +128,7 @@ mu = 1e-3;
 % opts.cmode      = 'C2R'; % explicitly tell it that we are complex. not necessary though
 opts.normA      = normA; % this will help with scaling
 opts.stopCrit   = 4;
-opts.tol        = 1e-5;
+opts.tol        = 1e-4;
 [x,out,optsOut] = solver_sSDP(C,A,b, mu, x0, z0, opts, contOpts);
 
 % Check that we are within allowable bounds
