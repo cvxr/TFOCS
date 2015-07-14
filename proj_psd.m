@@ -37,7 +37,7 @@ if nargin > 2 && t > 0,
 	v = 0;
     X = full(X+X'); % divide by 2 later
     if isReal, X = real(X); end
-    [V,D]=eig(X); % we don't yet take advantage of sparsity here
+    [V,D]=safe_eig(X); % we don't yet take advantage of sparsity here
     D  = max(0.5*diag(D),0);
     tt = D > 0;
     V  = bsxfun(@times,V(:,tt),sqrt(D(tt,:))');
@@ -84,7 +84,7 @@ if nargin > 3 && t > 0,
     while ~ok
         K = min( [K,N] );
         if K > N/2 || K > N-2 || N < 20
-            [V,D]   = eig(full((X+X')/2));
+            [V,D]   = safe_eig(full((X+X')/2));
             ok = true;
         else
             [V,D] = eigs( X, K, SIGMA, opts );

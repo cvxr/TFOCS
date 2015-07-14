@@ -42,7 +42,7 @@ end
 X = (X+X')/2; % Matlab will make it exactly symmetric
 
 if nargin == 3 && t > 0,
-    [V,S]       = eig(full(X));
+    [V,S]       = safe_eig(full(X));
 %     op          = prox_linf(q); % for prox_spectral
     op          = prox_max(q);
     s           = diag(S);

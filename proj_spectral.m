@@ -84,7 +84,7 @@ SP  = issparse(X);
 v = 0;
 if nargin > 3 && t > 0,
     if SP, X = full(X); end % svd, eig, and norm require full matrices
-    [V,D]   = eig(X); % just in case X is sparse
+    [V,D]   = safe_eig(X); % just in case X is sparse
     [dum,D] = eproj(diag(D),q); % not q*t, since we are just projecting...
     X       = V*diag(D)*V';
     if SP, X = sparse(X); end
@@ -135,7 +135,7 @@ if nargin > 3 && t > 0,
             opts.tol = 1e-3;
         end
         if K > min(M,N)/2
-            [V,D]   = eig(full((X+X')/2));
+            [V,D]   = safe_eig(full((X+X')/2));
             ok = true;
         end
     end

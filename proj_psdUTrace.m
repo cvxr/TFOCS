@@ -114,7 +114,7 @@ if nargin > 5 && t > 0
         ctr   = ctr + 1;
         K     = min( K, N );
         if K > N/2 || K > maxK
-            [V,D] = eig(X); ok = true;
+            [V,D] = safe_eig(X); ok = true;
             D     = diag(D);
             break;
         end
@@ -195,7 +195,7 @@ if force_real % added Nov 23 2012
 end
 if nargin > 4 && t > 0,
     nCalls = nCalls + 1;
-    [V,D]=eig(X);
+    [V,D]=safe_eig(X);
     [dum,D] = eproj(diag(D),t);
     tt = D > 0;
     V  = bsxfun(@times,V(:,tt),sqrt(D(tt,:))');

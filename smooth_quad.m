@@ -73,7 +73,7 @@ if isnumeric( P ),
     else
         P = 0.5 * ( P + P' );
         if use_eig
-            [V,DD] = eig(P); dd = diag(DD);
+            [V,DD] = safe_eig(P); dd = diag(DD);
         else
             V = []; dd = [];
         end
