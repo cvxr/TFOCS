@@ -91,7 +91,7 @@ if strcmpi(action,'matrix') || strcmpi(action,'cvx')
         op = Dh + 1i*Dv;
     else
         % "norms" is a CVX function, but we can over-load it (see sub-function below)
-        op = @(X) sum( norms( [Dh*X(:), Dv*X(:)]' ) );
+        op = @(X) sum( norms( [Dh*X(:), Dv*X(:)]', 1 ) );
     end
     return;
 end
