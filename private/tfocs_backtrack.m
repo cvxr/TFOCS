@@ -1,13 +1,19 @@
 % TFOCS_BACKTRACK
 % Backtracking helper script.
 
+do_break    = false; % added for compatibility with R2015b
+while true
+
 % Quick exit for no backtracking
-if beta >= 1, break; end % SRB changing == to >=
+if beta >= 1
+    do_break = true;
+    break; 
+end % SRB changing == to >=
 
 % Quick exit if no progress made
 xy = x - y;
 xy_sq = tfocs_normsq( xy );
-if xy_sq == 0, localL = Inf; break; end
+if xy_sq == 0, localL = Inf; do_break=true; break; end
 %fprintf('xy_sq/x is %.2e\n', xy_sq/tfocs_normsq(x) );
 if xy_sq/tfocs_normsq(x) < eps, cntr_Ax=Inf; end % force a reset
 
@@ -28,11 +34,16 @@ end
 
 % Exit if Lipschitz criterion satisfied, or if we hit Lexact
 backtrack_steps = backtrack_steps + 1;
-if localL <= L || L >= Lexact, break; end
+if localL <= L || L >= Lexact, do_break=true; break; end
 if ~isinf( localL ), 
     L = min( Lexact, localL );
-elseif isinf( localL ), localL = L; end
+elseif isinf( localL )
+    localL = L;
+end
 L = min( Lexact, max( localL, L / beta ) );
+
+break;
+end % end of "while true"
 
 % TFOCS v1.3 by Stephen Becker, Emmanuel Candes, and Michael Grant.
 % Copyright 2013 California Institute of Technology and CVX Research.

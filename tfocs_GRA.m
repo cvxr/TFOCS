@@ -35,11 +35,13 @@ while true,
         
         % Backtracking
         tfocs_backtrack
+        if do_break, break; end % new, for R2015b compatibility
         
     end
     
     % Collect data, evaluate stopping criteria, and print status
     tfocs_iterate
+    if do_break, break; end % new, for R2015b compatibility
     
 end
 

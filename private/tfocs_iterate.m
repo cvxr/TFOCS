@@ -315,9 +315,15 @@ if saveHist,
 end
 
 % Exit if positive stopping criteria met
-if ~isempty( status ),
-	break;
-end
+% if ~isempty( status ),
+% 	break;
+% end
+
+% for R2015b compatibility:
+do_break    = false;
+if ~isempty( status )
+    do_break = true;
+else
 
 % Restart acceleration if necessary
 backtrack_steps = 0;
@@ -352,6 +358,8 @@ elseif restart < 0,
 end
 
 C_y     = Inf;
+
+end
 
 % TFOCS v1.3 by Stephen Becker, Emmanuel Candes, and Michael Grant.
 % Copyright 2013 California Institute of Technology and CVX Research.

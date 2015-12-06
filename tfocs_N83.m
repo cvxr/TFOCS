@@ -51,11 +51,13 @@ while true,
         
         % Backtracking test
         tfocs_backtrack
+        if do_break, break; end % new, for R2015b compatibility
         
     end
     
     % Collect data, evaluate stopping criteria, and print status
     tfocs_iterate
+    if do_break, break; end % new, for R2015b compatibility
 
     % Reversed z update. This step is skipped if restart occurs
     if theta == 1,

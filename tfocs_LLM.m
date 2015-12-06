@@ -50,11 +50,13 @@ while true,
         
         % Backtracking test
         tfocs_backtrack
+        if do_break, break; end % new, for R2015b compatibility
         
     end
     
     % Collect data, evaluate stopping criteria, and print status
     tfocs_iterate
+    if do_break, break; end % new, for R2015b compatibility
 	
 	% Scaled gradient. This step must be skipped if restart occurs
     if theta == 1 || isinf(theta)
