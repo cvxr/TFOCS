@@ -20,6 +20,7 @@ function varargout = solver_sLP( c, A, b, mu, x0, z0, opts, varargin )
 %   Uses many fewer dual variables now,
 %   convergence is faster, and the primal variable is guaranteed
 %   to always be non-negative.
+% Also set to use non-linear CG when available
 
 % Supply default values
 error(nargchk(4,8,nargin));
@@ -71,10 +72,18 @@ b      = b/normA;
 
 obj    = smooth_linear(c);
 
+if exist('tfocs_CG','file')
+    if ~isfield(opts,'alg') || isempty(opts.alg)
+        opts.alg = 'CG';
+        disp('Using non-linear conjugate gradients');
+    end
+end
+
 if ~NONNEG
     % There is no x >= 0 constraint:
+    % Note: [] after {A,-b} is equivalent to proj_Rn
     [varargout{1:max(nargout,1)}] = ...
-        tfocs_SCD( obj, { A, -b }, proj_Rn, mu, x0, z0, opts, varargin{:} );
+        tfocs_SCD( obj, { A, -b }, [], mu, x0, z0, opts, varargin{:} );
 else
     % There is a x >= 0 constraint:
 %     [varargout{1:max(nargout,1)}] = ...
@@ -82,7 +91,7 @@ else
     % New, July 13 2015, exploting new prox_shift function. Much better!
     obj = prox_shift(proj_Rplus,c);
     [varargout{1:max(nargout,1)}] = ...
-        tfocs_SCD( obj, { A, -b }, proj_Rn, mu, x0, z0, opts, varargin{:} );
+        tfocs_SCD( obj, { A, -b }, [], mu, x0, z0, opts, varargin{:} );
 end
 
 % TFOCS v1.3 by Stephen Becker, Emmanuel Candes, and Michael Grant.

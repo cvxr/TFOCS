@@ -25,6 +25,7 @@ function varargout = solver_sSDP( c, A, b, mu, x0, z0, opts, varargin )
 %       (note: cmode = 'C2C' is not supported)
 %
 % July 2015, improved model. Fewer dual variables, faster convergence.
+% Also, use non-linear conjugate gradients if available
 %
 %   See also solver_sLMI
 
@@ -85,6 +86,10 @@ end
 A      = linop_compose( A, 1 / normA );
 b      = b/normA;
 
+if exist('tfocs_CG','file')
+    opts.alg = 'CG';
+    disp('Using non-linear conjugate gradients');
+end
 
 % obj    = smooth_linear(c);
 % [varargout{1:max(nargout,1)}] = ...
@@ -94,7 +99,7 @@ b      = b/normA;
 % July 13 2015, better model (fewer dual variables)
 obj     = prox_shift( proj_psd, c );
 [varargout{1:max(nargout,1)}] = ...
-    tfocs_SCD( obj, {A,-b}, proj_Rn, mu, x0, z0, opts, varargin{:} );
+    tfocs_SCD( obj, {A,-b}, [], mu, x0, z0, opts, varargin{:} );
 ind = 1;
 
 % and undo the scaling by normA:

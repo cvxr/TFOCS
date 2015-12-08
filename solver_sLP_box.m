@@ -17,6 +17,7 @@ function varargout = solver_sLP_box( c, A, b, l, u, mu, x0, z0, opts, varargin )
 %   (e.g. opts.normA = norm(A) or opts.normA = normest(A))
 %
 % July 13, 2015, algorithmic change to improve the performance.
+% Also set to use non-linear CG when available
 %
 %   See also solver_sLP
 
@@ -61,17 +62,22 @@ b      = b/normA;
 
 obj    = smooth_linear(c);
 
+if exist('tfocs_CG','file')
+    opts.alg = 'CG';
+    disp('Using non-linear conjugate gradients');
+end
+
 if isempty(l) && isempty(u)
     % There is no x >= 0 constraint:
     [varargout{1:max(nargout,1)}] = ...
-        tfocs_SCD( obj, { A, -b }, proj_Rn, mu, x0, z0, opts, varargin{:} );
+        tfocs_SCD( obj, { A, -b }, [], mu, x0, z0, opts, varargin{:} );
 else
     % added Juy 13, 2015
     % This has fewer dual variables and should be much better!
     obj = prox_shift( proj_box(l,u), c );
     
     [varargout{1:max(nargout,1)}] = ...
-        tfocs_SCD( obj, { A, -b }, proj_Rn, mu, x0, z0, opts, varargin{:} );
+        tfocs_SCD( obj, { A, -b }, [], mu, x0, z0, opts, varargin{:} );
     
 % elseif isempty(u)
 %     % There is a x >= l constraint, i.e. x - l >= 0

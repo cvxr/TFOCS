@@ -50,6 +50,7 @@ opts.continuation = true;
 x0   = [];
 z0   = [];
 mu = 1e-2;
+mu = 1e-3;
 
 opts.stopCrit   = 4;
 opts.tol        = 1e-4;
