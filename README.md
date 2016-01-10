@@ -13,7 +13,7 @@ More information about the software can be found in the
 [users' guide](https://github.com/cvxr/TFOCS/blob/master/userguide.pdf).
 
 TFOCS is jointly owned by [CVX Research, Inc.](http://cvxr.com) and
-[Caltech](http://caltech.edu). As of October 2, 2013, it has been made freely
+[Caltech](http://www.caltech.edu/). As of October 2, 2013, it has been made freely
 available for both academic and commercial use under a 
 [BSD 3-Clause license](https://github.com/cvxr/TFOCS/raw/master/LICENSE),
 subject to requirements of attribution and non-endorsement, 
@@ -22,10 +22,10 @@ and a disclaimer of warranty contained therein.
 ## Downloading
 
 The source code for TFOCS is now hosted on
-[GitHub](https://github.com/mcg1969/TFOCS). Feel free to visit the GitHub page
+[GitHub](https://github.com/cvxr/TFOCS). Feel free to visit the GitHub page
 to browse the code or clone the repository. Direct download links for the
 latest versions are provided on the
-[Releases](https://github.com/mcg1969/TFOCS/releases) page. The packages
+[Releases](https://github.com/cvxr/TFOCS/releases) page. The packages
 include the main program files, the documentation, the paper, and a number of
 examples and demos.
 
