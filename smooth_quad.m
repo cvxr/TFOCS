@@ -86,8 +86,13 @@ end
 function [ v, g ] = smooth_quad_matrix( P, q, r, V, dd, x, t )
 switch nargin
     case 6,
-        g = P * x + q;
-        v = 0.5 *  tfocs_dot( x, g + q ) + r;
+        if size(x,2)>1
+            g = P * x + repmat(q,1,size(x,2));
+            v = 0.5 *  tfocs_dot( x, g + repmat(q,1,size(x,2)) ) + r;
+        else
+            g = P * x + q;
+            v = 0.5 *  tfocs_dot( x, g + q ) + r;
+        end
     case 7,
         n = length(x);
         
