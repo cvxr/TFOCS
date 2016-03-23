@@ -1,4 +1,4 @@
-function varargout   = test_proxPair( f, g, N, nTrials, force_gama,tol,break_on_bad )
+function varargout   = test_proxPair( f, g, N, nTrials, force_gama,tol,break_on_bad,negScale )
 % TEST_PROXPAIR Runs diagnostics on a pair of functions to check if they are Legendre conjugates.
 % maxEr   = test_proxPair( f, g )
 %     will run tests to determine if f and g are really
@@ -36,7 +36,10 @@ function varargout   = test_proxPair( f, g, N, nTrials, force_gama,tol,break_on_
 %       matrices are returned.
 % 
 % Note: TFOCS uses the dual function composed with the negative identity operator,
-%   so you may wish to use prox_scale( g, -1) instead of just g.
+%   so you may wish to use prox_scale( g,-1) instead of just g.
+% ... = test_proxPair( f, g, [N or x0], nTrials, t, tol, break, negScale )
+%   will automatically change g to prox_scale(g,-1) if negScale=true 
+%   (default: false)
 % 
 % Examples of valid pairs (f,g) (where q is any positive scalar, r is any scalar):
 % 
@@ -82,7 +85,7 @@ function varargout   = test_proxPair( f, g, N, nTrials, force_gama,tol,break_on_
 % See also prox_dualize.m 
 
 
-error(nargchk(2,7,nargin));
+error(nargchk(2,8,nargin));
 if nargin < 3 || isempty(N), N = 1; end
 if ~isscalar(N)
     x0 = N;
@@ -126,6 +129,14 @@ if strfind( lower(break_on_bad), 'break')
     break_on_bad = true;
 else
     break_on_bad = false;
+end
+if nargin < 8 || isempty(negScale), negScale = false; end
+
+% 3/23/2016. TFOCS actually requires dual composed with -I
+% which has no effect for norms.
+% Use this composition function, or prox_scale(g,-1).
+if negScale
+    g   = @(varargin) composeWithNegative(g,varargin{:});
 end
 
 fprintf('\n');
@@ -179,7 +190,8 @@ for k = 1:nTrials
     end
     
     % when both f and g are projections, xf and xg should be orthogonal
-    fprintf('Random trial #%2d, errors are:\t%.2e,\t%.2e,\t%.2e\n', k, norm(er), er2, er3 );
+    fprintf('Random trial #%2d, errors are:\t%.1e,\t%.1e,\t%.1e; stepsize used was %.2e\n', ...
+        k, norm(er), er2, er3, gama );
     maxEr = max([norm(er),er2,er3,maxEr] );
     
     if break_on_bad && maxEr > tol
@@ -206,6 +218,21 @@ if break_on_bad
     if nargout > 1, varargout{2} = []; end
 else
     varargout{1} = maxEr;
+end
+
+end
+
+% March 2016:
+function varargout = composeWithNegative( g, varargin )
+% redefine h(x) = g(-x)
+%   so prox_h(x) = -prox_g(-x)
+varargin{1} = -varargin{1};
+if nargin == 2
+    varargout{1} = g( varargin{:} );
+else
+    [varargout{1},varargout{2}] = g( varargin{:} );
+    varargout{2} = -varargout{2};
+end
 end
 
 % TFOCS v1.3 by Stephen Becker, Emmanuel Candes, and Michael Grant.
