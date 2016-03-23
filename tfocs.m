@@ -43,9 +43,9 @@ function varargout = tfocs( smoothF, affineF, projectorF, x0, opts )
 %           Returns the value of the prox function at x. Note that no
 %           projection is taking place, so in many cases this should be
 %           a relatively simple calculation.
-%       [ Cz, z ] = projectorF( x, L )
+%       [ Cz, z ] = projectorF( x, t )
 %           Computes the minimizer 
-%              z = argmin_z projectorF(z) + 0.5*L*\|x-y\|^2
+%              z = argmin_z projectorF(z) + 1/(2*t)*\|x-y\|^2
 %           The norm is Euclidean: \|z\| = <z,z>^{1/2}.
 %
 % OTHER INPUTS:

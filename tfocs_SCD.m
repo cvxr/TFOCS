@@ -12,6 +12,9 @@ function [ x, odata, opts ] = tfocs_SCD( objectiveF, affineF, dualproxF, mu, x0,
 %       minimize 0.5*(x-x0).^2
 %       s.t.     affineF(x) \in \cK
 %
+%   dualProxF is also known as conjnegF
+%       It is the Fenchel-Legendre dual up to a -1 scaling of the argument
+%
 %   For general usage instructions, see tfocs.m and the user guide.
 %   In general, setting a variable to [] will set it to its default value.
 %
