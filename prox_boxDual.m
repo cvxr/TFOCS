@@ -16,6 +16,13 @@ function op = prox_boxDual(l,u,scale)
 %
 %   See also proj_box, proj_Rplus
 
+% the dual itself if g(x) = max( u*x, l*x )
+%                         = { u*x, if x>=0;  v*x if x<0 }
+% so the prox of the dual is
+%   prox_{t*g}(x)   = { x - t*u, (value is u*x), if x >= u*t
+%                     { x - t*l, (value is l*x), if x <= l*t
+%                     { 0, (value is 1/t*x^2), otherwise
+
 
 error(nargchk(1,3,nargin));
 if nargin < 3, scale = 1;
@@ -66,12 +73,12 @@ switch nargin,
         end
         % and implicity, if l/t < x < u/t, then xOut is 0
         
+        v = sum(sum( max( l.*xOut, u.*xOut ) )); 
+        
+        % Bug fixed 3/23/2016, thanks to Carl Nettelblad for noticing
         if scale ~= 1
             xOut    = scale*xOut;
         end
-        
-        v = sum(sum( max( l.*xOut, u.*xOut ) )); 
-%         v = sum(sum( max( [l.*xOut, u.*xOut] ) ));
 	otherwise,
 		error( 'Wrong number of arguments.' );
 end
