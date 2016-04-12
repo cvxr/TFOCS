@@ -1,12 +1,12 @@
 function varargout = solver_sBPDN_WW( A, alpha, W1, beta, W2, b, epsilon, mu, x0, z0, opts, varargin )
 % SOLVER_SBPDN_WW BPDN with two separate (weighted) l1-norm terms. Uses smoothing.
-% [ x, out, opts ] = solver_sBPDN_WW( A, alpha, W_1, beta, W_2, b, epsilon, mu, x0, opts )
+% [ x, out, opts ] = solver_sBPDN_WW( A, alpha, W_1, beta, W_2, b, epsilon, mu, x0, z0, opts )
 %    Solves the smoothed basis pursuit denoising problem
-%        minimize alpha*norm(W_1 x,1) + beta*norm(W_2 x, 1) 0.5*mu*(x-x0).^2
+%        minimize alpha*norm(W_1 x,1) + beta*norm(W_2 x, 1) + 0.5*mu*(x-x0).^2
 %        s.t.     norm(A*x-b,2) <= epsilon
 %    by constructing and solving the composite dual.
 %    A, W_1 and W_2 must be a linear operator or matrix, and b must be a vector. The
-%    initial point x0 and the options structure opts are optional.
+%    initial points x0, z0 and the options structure opts are optional.
 %    See also solver_sBPDN and solver_sBPDN_W
 
 % Supply default values
