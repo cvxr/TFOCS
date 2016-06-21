@@ -59,6 +59,14 @@ for k = 1 : nargin,
         sz{2} = tsz{2};
     end
 end
+% Explanation of above code:
+% suppose have three inputs, opA, opB, opC; with sizes szA, szB, szC
+%   where opA: szA{1} --> szA{2}
+%   so we need szC{2} == szB{1} and szB{2} = szA{1}
+%
+% so  sz{2} = szA{2}
+% and sz{1} = szC{1}
+
 if nargin == 1,
     op = varargin{1};
 else
