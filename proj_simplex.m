@@ -42,7 +42,7 @@ v = 0;
 % VECTORIZE = true;
 
 if nargin > 4 && t > 0,
-	if any( x(:) < 0 ) || any( sum( x ) > q ),
+	if any( x(:) < 0 ) || any( sum( x ) > q ) || ( EQ && norm( sum( x ) - q)>1e-8/norm(q) ) 
         if VECTORIZE
             s     = sort( x(:), 'descend' );
         else

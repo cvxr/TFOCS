@@ -18,7 +18,7 @@ if ~isa( funcF, 'function_handle' ),
 elseif ~isa( funcG, 'function_handle' ), 
     error( 'The second argument must be a function handle.' );
 end
-op = @(varargin)prox_diag_impl( funcF, funcF, n, varargin{:} );
+op = @(varargin)prox_diag_impl( funcF, funcG, n, varargin{:} );
 
 
 function [ v, x ] = prox_diag_impl( prox_f, prox_g, n, x, t )
