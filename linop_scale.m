@@ -17,10 +17,12 @@ function op = linop_scale( scale, sz )
 %       Because this is simple scaling, the range will have the same size
 %       as the domain.
 %
+%   July 2016, allowing OP(X) = scale .* X  as well
+%
 %   See also linop_compose
 
-if ~isnumeric( scale ) && numel( scale ) ~= 1,
-    error( 'Argument must be a scalar.' );
+if ~isnumeric( scale ) %&& numel( scale ) ~= 1,
+    error( 'Argument must be numeric.' );
 elseif ~isreal( scale ),
     error( 'Argument must be real.' );
 end
@@ -36,7 +38,7 @@ else
     error('bad type for size input');
 end
 
-if scale == 1,
+if all(scale(:) == 1 ),
     op = @linop_identity;
 else
     op = @(x,mode)linop_scale_impl( szCell, scale, x, mode );
@@ -46,16 +48,16 @@ function y = linop_scale_impl( sz, scale, y, mode )
 if mode == 0, 
     y = sz;
 else
-    y = scale * y;
+    y = scale .* y;
 end
 
-function OK = isSquare( sz )
-OK = true;
-for j = 1:length( sz{1} )
-    if sz{1}(j) ~= sz{2}(j)
-        OK = false; break;
-    end
-end
+% function OK = isSquare( sz )
+% OK = true;
+% for j = 1:length( sz{1} )
+%     if sz{1}(j) ~= sz{2}(j)
+%         OK = false; break;
+%     end
+% end
 
 % TFOCS v1.3 by Stephen Becker, Emmanuel Candes, and Michael Grant.
 % Copyright 2013 California Institute of Technology and CVX Research.
