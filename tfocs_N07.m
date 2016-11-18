@@ -6,6 +6,10 @@ function [ x, out, opts ] = tfocs_N07( smoothF, affineF, projectorF, x0, opts )
 %      help tfocs_help
 %   for a full explanation.
 
+% Nov 17 2016, hack for Matlab R2016b not allowing nargin/nargout in
+% tfocs_initialize:
+narginn = nargin; nargoutt = nargout;
+
 % Initialization
 alg = 'N07';
 algorithm = 'Nesterov''s 2007 two-projection method';

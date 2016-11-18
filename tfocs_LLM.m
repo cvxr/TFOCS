@@ -6,6 +6,10 @@ function [ x, out, opts ] = tfocs_LLM( smoothF, affineF, projectorF, x0, opts )
 %      help tfocs_help
 %   for a full explanation.
 
+% Nov 17 2016, hack for Matlab R2016b not allowing nargin/nargout in
+% tfocs_initialize:
+narginn = nargin; nargoutt = nargout;
+
 % Initialization
 alg = 'LLM';
 algorithm = 'Lan/Lu/Monteiro''s two-projection method';

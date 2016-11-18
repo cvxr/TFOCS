@@ -40,13 +40,13 @@ odef = struct( ...
     );
 
 % Calling the solver with a no arguments returns the default options structure
-if nargin < 1 || ( nargin ==1 && isstruct( smoothF ) )
+if narginn < 1 || ( narginn ==1 && isstruct( smoothF ) )
     opts = odef;
     % remove the "CG" options for now, since they are undocumented
     opts    = rmfield(opts,'cg_restart');
     opts    = rmfield(opts,'cg_type');
     % if any default options are passed in (e.g. by tfocs_SCD), add those now:
-    if ( nargin ==1 && isstruct( smoothF ) )
+    if ( narginn ==1 && isstruct( smoothF ) )
         for f = fieldnames( smoothF )'
             opts.( f{1} )   = smoothF.( f{1} );
         end
@@ -54,7 +54,7 @@ if nargin < 1 || ( nargin ==1 && isstruct( smoothF ) )
     
     out = [];
     x = opts;
-    if nargout == 0,
+    if nargoutt == 0,
         disp('====== TFOCS default options =======');
 %         disp('Format is    fieldname: { [default]  ''Usage type.
 %         Description''}');
@@ -110,11 +110,11 @@ F_types = {'function_handle','cell','double','single'};
 assert( ismember(class(smoothF),F_types),'smoothF is of wrong type' );
 assert( ismember(class(affineF),F_types),'affineF is of wrong type' );
 assert( ismember(class(projectorF),F_types),'projectorF 3 is of wrong type' );
-if nargin >= 4
+if narginn >= 4
     x0_types = {'cell','double','single','tfocs_tuple'};
     assert( ismember(class(x0),x0_types),'x0 is of wrong type' );
 end
-if nargin >= 5 && ~isempty(opts)
+if narginn >= 5 && ~isempty(opts)
     assert( ismember(class(opts),{'struct'}),'opts is of wrong type' );
 end
 
@@ -132,7 +132,7 @@ odef.alpha  = Inf;
 % Process the options structure, merging it with the default options
 %   (merge "opts" into "odef")
 def_fields = fieldnames(odef)';              % default options
-if nargin > 4 && ~isempty(opts),
+if narginn > 4 && ~isempty(opts),
     use_fields = zeros(size(def_fields));
     opt_fields = fieldnames(opts)';          % user-supplied options
     for k = opt_fields,
@@ -380,7 +380,7 @@ if maxmin < 0,
     smoothF = tfunc_scale( smoothF, -1 );
 end
 if countOps,
-    apply_smooth = @(x)solver_apply( 1:(1+(nargout>1)), smoothF, x );
+    apply_smooth = @(x)solver_apply( 1:(1+(nargoutt>1)), smoothF, x );
 else
     apply_smooth = smoothF;
 end
@@ -396,7 +396,7 @@ else
     projectorF = prox_stack( projectorF );
 end
 if countOps,
-    apply_projector = @(varargin)solver_apply( 4:(4+(nargout>1)), projectorF, varargin{:} );
+    apply_projector = @(varargin)solver_apply( 4:(4+(nargoutt>1)), projectorF, varargin{:} );
 else
     apply_projector = projectorF;
 end
@@ -560,7 +560,7 @@ if ~isempty(stopFcn) && ~iscell(stopFcn),
    stopFcn = { stopFcn };
 end
 errs = zeros(1,length(errFcn));
-if nargout == 1,
+if nargoutt == 1,
     saveHist = false;
 end
 if saveHist,

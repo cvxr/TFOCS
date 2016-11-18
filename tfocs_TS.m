@@ -6,6 +6,10 @@ function [ x, out, opts ] = tfocs_TS( smoothF, affineF, projectorF, x0, opts )
 %      help tfocs_help
 %   for a full explanation.
 
+% Nov 17 2016, hack for Matlab R2016b not allowing nargin/nargout in
+% tfocs_initialize:
+narginn = nargin; nargoutt = nargout;
+
 % Initialization
 alg = 'TS';
 algorithm = 'Tseng''s single-projection modification of Nesterov''s 2007 method';

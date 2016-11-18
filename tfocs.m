@@ -66,6 +66,10 @@ function varargout = tfocs( smoothF, affineF, projectorF, x0, opts )
 %   out     contains extra information collected during the run
 %   opts    structure containing the options used
 
+% Nov 17 2016, hack for Matlab R2016b not allowing nargin/nargout in
+% tfocs_initialize:
+narginn = nargin; nargoutt = nargout;
+
 % User has requested viewing the default values of "opts"
 if nargin == 0 || ( nargin==1 && isstruct(smoothF) )
     if nargout == 0

@@ -4,6 +4,10 @@ function [ x, out, opts ] = tfocs_GRA( smoothF, affineF, projectorF, x0, opts )
 %   Implements a standard gradient method. A variety of calling sequences
 %   are supported; type 'help tfocs_help' for a full explanation.
 
+% Nov 17 2016, hack for Matlab R2016b not allowing nargin/nargout in
+% tfocs_initialize:
+narginn = nargin; nargoutt = nargout;
+
 % Initialization
 alg = 'GRA';
 algorithm = 'Proximal gradient descent';
