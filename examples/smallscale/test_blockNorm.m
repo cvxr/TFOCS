@@ -177,7 +177,7 @@ AA = linop_matrix(A, 'r2r',d );
 fprintf('Error vs. IPM solution is %.2e\n',er(x) );
 
 % Check that we are within allowable bounds
-if er(x) < 1e-6
+if er(x) < 5e-6
     disp('Everything is working');
 else
     error('Failed the test');

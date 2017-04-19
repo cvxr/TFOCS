@@ -9,6 +9,7 @@ So if you don't seen any error message in red text, then everything
 is working.
 
 %}
+warning('off','MATLAB:nargchk:deprecated') % narginchk not available prior to R2011b
 
 w   = what;
 fileList    = w.m;

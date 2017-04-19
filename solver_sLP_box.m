@@ -62,7 +62,7 @@ b      = b/normA;
 
 obj    = smooth_linear(c);
 
-if exist('tfocs_CG','file')
+if exist('tfocs_CG','file')&& exist('wp_ls','file') % wp_ls.m is the linesearch code for the nonliner CG
     opts.alg = 'CG';
     disp('Using non-linear conjugate gradients');
 end

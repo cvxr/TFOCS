@@ -86,7 +86,7 @@ end
 A      = linop_compose( A, 1 / normA );
 b      = b/normA;
 
-if exist('tfocs_CG','file')
+if exist('tfocs_CG','file') && exist('wp_ls','file') % wp_ls.m is the linesearch code for the nonliner CG
     opts.alg = 'CG';
     disp('Using non-linear conjugate gradients');
 end
