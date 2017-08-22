@@ -82,7 +82,7 @@ if (isempty(status) || ~isempty(findstr(status,'limit')) ) ...
         end
     end
     for err_j = 1 : numel(stopFcn),
-        if isa(stopFcn,'function_handle') % added Oct 27 '14
+        if isa(stopFcn{err_j},'function_handle') % added Oct 27 '14; corrected Aug 22 '17
             if saddle,
                 stop = stopFcn{err_j}(f_v,cur_pri, get_dual(cur_dual) );
             else
