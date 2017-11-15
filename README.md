@@ -8,6 +8,8 @@ Becker](http://ugcs.caltech.edu/~srbecker/),  [Emmanuel J.
 Candès](http://statweb.stanford.edu/~candes/) and  [Michael
 Grant](http://cvxr.com/bio).
 
+Despite the name, TFOCS is not restricted to *conic* models.
+
 More information about the software can be found in the
 [paper](https://github.com/cvxr/TFOCS/raw/master/TFOCS.pdf) and the 
 [users' guide](https://github.com/cvxr/TFOCS/blob/master/userguide.pdf).
@@ -50,6 +52,9 @@ Stanford University Technical Report, September 2010.
 Published in 
 [Mathematical Programming Computation](http://mpc.zib.de/index.php/MPC/article/view/58), Volume 3,
 Number 3, August 2011.
+
+The most up-to-date mathematical description is [Chapter 4 of Stephen Becker's thesis](https://thesis.library.caltech.edu/6492/7/tfocs.pdf) (2011)
+which is the same as the journal paper but recasts the framework to apply for conjugate functions, rather than conic duals, and thus extend the applicability.
 
 In the spirit of [reproducible research](http://reproducibleresearch.net/), we
 provide the 
