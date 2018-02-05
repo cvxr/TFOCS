@@ -42,9 +42,9 @@ if nargin == 1 && strcmpi(q,'reset')
     return;
 end
 
-if nargin == 0,
+if nargin == 0
 	q = 1;
-elseif ~isnumeric( q ) || ~isreal( q ) || numel( q ) ~= 1 || q <= 0,
+elseif ~isnumeric( q ) || ~isreal( q ) || numel( q ) ~= 1 || q <= 0
 	error( 'Argument must be positive.' );
 end
 if nargin < 2, SVD_STYLE = []; end
@@ -60,12 +60,12 @@ function [ v, X ] = prox_nuclear_impl( q, SVD_STYLE, X, t )
 persistent oldRank
 persistent nCalls
 persistent V_save
-if nargin == 0, oldRank = []; v = nCalls; nCalls = []; return; end
+if nargin == 0, oldRank = []; v = nCalls; nCalls = []; V_save=[]; return; end
 if isempty(nCalls), nCalls = 0; end
 
 ND = (size(X,2) == 1);
 % ND = ~ismatrix(X);
-if ND, % X is a vector, not a matrix, so reshape it 
+if ND % X is a vector, not a matrix, so reshape it 
     sx = size(X);
     X = reshape( X, prod(sx(1:end-1)), sx(end) );
 end
@@ -110,7 +110,7 @@ switch SVD_STYLE
         %opt.eta = 0;  % makes reorth slow
         opts.delta = 10*opts.eta;
         svdFcn = @(X,K,opt) lansvd( X, K, 'L', opt ); % fixed bug, 3/29/15
-    case {2,'arpack'};
+    case {2,'arpack'}
         svdFcn = @(X,K,opt) svds(X,K,'L',opt);
     case {3,'randomized'}
         nPower      = 2; % 2 or 3 is good
@@ -119,7 +119,7 @@ switch SVD_STYLE
         svdFcn = @(X,K,opt) randomizedSVD( X, K, K+overSample, nPower, [], struct( 'warmStart', V_save ) );
 end
 
-if nargin > 3 && t > 0,
+if nargin > 3 && t > 0
     
     tau = q*t;
     nCalls = nCalls + 1;
@@ -162,7 +162,7 @@ if nargin > 3 && t > 0,
     tt = s > 0;
     s  = s(tt,:);
 
-    if isempty(s),
+    if isempty(s)
         X = tfocs_zeros(X);
     else
         X = U(:,tt) * bsxfun( @times, s, V(:,tt)' );
@@ -176,7 +176,7 @@ else
 end
 
 v = q * sum(s);
-if ND, 
+if ND
     X = reshape( X, sx ); 
 end
 
