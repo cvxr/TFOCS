@@ -21,6 +21,9 @@ available for both academic and commercial use under a
 subject to requirements of attribution and non-endorsement, 
 and a disclaimer of warranty contained therein.
 
+### TFOCS in the press
+We were award the [Beale-Orchard-Hays prize](http://www.mathopt.org/?nav=boh#winners) in 2015 for excellence in mathematical programming.
+
 ## Downloading
 
 The source code for TFOCS is now hosted on
