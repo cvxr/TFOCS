@@ -18,6 +18,9 @@ end
 % For the ordered L1 norm, used in prox_OL1.m:
 compileFunction('proxAdaptiveL1Mex.c');
 
+% For a faster implementation of soft-thresholding/shrinkage
+compileFunction('shrink_mex.c');
+
 
 
 
