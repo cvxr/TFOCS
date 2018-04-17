@@ -22,6 +22,9 @@ function op = prox_l1_and_sum( q, b, nColumns, zeroID, useMatricized )
 %       toggles between two algorithms if nColumns > 1.
 %       If useMatricized is true (default), runs a variant algorithm
 %       that is a bit faster (output should be the same).
+%
+% Often useful for sparse subpsace clustering (SSC)
+%   See, e.g., https://github.com/stephenbeckr/SSC
 
 % Nov 2017, Stephen.Becker@Colorado.edu
 
@@ -54,6 +57,9 @@ function x = prox_f(qq,b,nColumns,zeroID,useMatricized,x,t) % stepsize is t
     tq = t .* qq; % March 2012, allowing vectorized stepsizes
     
     % 3/15/18, adding:
+    if 3~=exist('shrink_mex','file')
+        addpath( fullfile( tfocs_where, 'mexFiles' ) );
+    end
     if 3==exist('shrink_mex','file') 
         shrink  = @(x) shrink_mex(x,tq);
         shrink_nu = @(x,nu) shrink_mex(x,tq,nu);
