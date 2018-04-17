@@ -53,6 +53,16 @@ end
 function x = prox_f(qq,b,nColumns,zeroID,useMatricized,x,t) % stepsize is t
     tq = t .* qq; % March 2012, allowing vectorized stepsizes
     
+    % 3/15/18, adding:
+    if 3==exist('shrink_mex','file') 
+        shrink  = @(x) shrink_mex(x,tq);
+        shrink_nu = @(x,nu) shrink_mex(x,tq,nu);
+    else
+        % this is fast, but requires more memory
+        shrink  = @(x) sign(x).*max( abs(x) - tq, 0 );
+        shrink_nu = @(x,nu) shrink(x-nu);
+    end
+    
     if zeroID && nColumns > 1
         X   = reshape( x, [], nColumns );
         n   = size(X,1);
@@ -65,7 +75,7 @@ function x = prox_f(qq,b,nColumns,zeroID,useMatricized,x,t) % stepsize is t
                 ind     = [1:col-1,col+1:size(X,1)];
                 Xsmall(:,col)   = X(ind,col);
             end
-            Xsmall = prox_l1sum_matricized( Xsmall, tq, b );
+            Xsmall = prox_l1sum_matricized( Xsmall, tq, b, shrink_nu );
             for col = 1:nColumns
                 X(col,col)  = 0;
                 ind     = [1:col-1,col+1:size(X,1)];
@@ -75,7 +85,7 @@ function x = prox_f(qq,b,nColumns,zeroID,useMatricized,x,t) % stepsize is t
             for col = 1:nColumns
                 ind     = [1:col-1,col+1:size(X,1)];
                 x       = X(ind,col);
-                x       = prox_l1sum( x, tq, b );
+                x       = prox_l1sum( x, tq, b, shrink_nu );
                 X(col,col)  = 0;
                 X(ind,col)  = x;
             end
@@ -86,15 +96,15 @@ function x = prox_f(qq,b,nColumns,zeroID,useMatricized,x,t) % stepsize is t
             X   = reshape( x, [], nColumns );
             
             if useMatricized
-                X = prox_l1sum_matricized( X, tq, b );
+                X = prox_l1sum_matricized( X, tq, b, shrink_nu );
             else
                 for col = 1:nColumns
-                    X(:,col) = prox_l1sum( X(:,col), tq, b );
+                    X(:,col) = prox_l1sum( X(:,col), tq, b, shrink_nu );
                 end
             end
             x   = X(:);
         else
-            x   = prox_l1sum( x, tq, b );
+            x   = prox_l1sum( x, tq, b, shrink_nu );
         end
     end
 end
@@ -102,12 +112,11 @@ end
 
 
 % Main algorithmic part: if x0 is length n, takes O(n log n) time
-function x = prox_l1sum( x0, lambda, b )
+function x = prox_l1sum( x0, lambda, b, shrink_nu )
 
     brk_pts = sort( [x0-lambda;x0+lambda], 'descend' );
 
-    shrink  = @(x) sign(x).*max( abs(x) - lambda, 0 );
-    xnu     = @(nu) shrink( x0 - nu );
+    xnu     = @(nu) shrink_nu( x0 , nu );
     h       = @(x) sum(x) - b; % want to solve h(nu) = 0
 
     % Bisection
@@ -192,12 +201,12 @@ end
 % and it takes exactly log2(n) iterations, as it doesn't stop early
 %   since different columns might stop at different steps and that's
 %   not easy to detect efficiently.
-function x = prox_l1sum_matricized( x0, lambda, b )
+function x = prox_l1sum_matricized( x0, lambda, b, shrink_nu )
 
     brk_pts = sort( [x0-lambda;x0+lambda], 'descend' );
-
-    shrink  = @(x) sign(x).*max( abs(x) - lambda, 0 );
-    xnu     = @(nu) shrink( x0 - nu );
+    
+    
+    xnu     = @(nu) shrink_nu( x0 , nu );
     
     h       = @(x) sum(x) - b; % want to solve h(nu) = 0
 
