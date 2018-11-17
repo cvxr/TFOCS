@@ -9,7 +9,7 @@ function [] = check_correctness()
 % Check correctness of optimizations done to prox_l1_mat
 
     % An example from sparse subspace clustering (SSC)
-    n_rows = 6000;
+    n_rows = 7000;
     n_cols = 6000;
     x = randn(n_rows, n_cols);
     x = x(:);
@@ -46,8 +46,8 @@ function [] = time_single_run()
     useMatricized = true;
     
     % Make the prox operator
-    prox = prox_l1_mat(Q, n_cols, zeroID, useMatricized);
-    %prox = prox_l1_mat_optimized(Q, n_cols, zeroID);
+    %prox = prox_l1_mat(Q, n_cols, zeroID, useMatricized);
+    prox = prox_l1_mat_optimized(Q, n_cols, zeroID);
     
     % Warm up
     n_done = 0;

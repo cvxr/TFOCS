@@ -74,7 +74,7 @@ function x = prox_f(qq,nColumns,zeroID,shrink,x,t) % stepsize is t
 
         x = shrink(x, tq);
 
-        diag_inds = nRows*(0:nRows-1) + (1:nRows);
+        diag_inds = nRows*(0:nColumns-1) + (1:nColumns);
         x(diag_inds) = 0;
 
         x = reshape(x, nRows*nColumns, 1);
