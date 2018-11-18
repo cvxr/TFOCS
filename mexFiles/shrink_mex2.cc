@@ -21,8 +21,6 @@
  * Created on 17 Nov 2018 by jamesfolberth@gmail.com
  */
 
-#define ACCEPT_OPT 0
-
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -40,10 +38,6 @@
 
 #include <mex.h>
 
-
-#if HAVE_AVX
-
-#endif
 
 struct Options {
 	Options() : num_threads(1) {}
@@ -184,6 +178,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	const double *X = mxGetPr(prhs[0]);
 
 	// Second input
+	//TODO JMF 18 Nov 2018: should accept a vector input?
 	const double lambda = mxGetScalar(prhs[1]);
 
 	// Allocate output

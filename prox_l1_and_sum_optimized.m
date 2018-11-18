@@ -1,4 +1,4 @@
-function op = prox_l1_and_sum( q, b, nColumns, zeroID )
+function op = prox_l1_and_sum_optimized( q, b, nColumns, zeroID )
 
 %PROX_L1_AND_SUM    L1 norm with sum(X)=b constraints
 %    OP = PROX_L1_AND_SUM( Q ) implements the nonsmooth function
@@ -19,11 +19,11 @@ function op = prox_l1_and_sum( q, b, nColumns, zeroID )
 %       then after reshaping X, enforces that X(i,i) = 0
 %
 %
-% If available and compiled, this uses TFOCS/mexFiles/shrink_mex2.cc
-% to apply the shrinkage operator.  To control the number of threads it uses,
-% run
+% If available and compiled, this uses TFOCS/mexFiles/prox_l1_and_sum_worker_mex.cc.
+% It also checks for TFOCS/mexFiles/shrink_mex2.cc to use as a slower backup.
+% To control the number of threads these use, run
 %
-%   `shrink_mex2(struct('num_threads', 4))`
+%   `prox_l1_and_sum_worker_mex(struct('num_threads', 4))`
 %
 % when constructing your problem.  This will cache the number of threads internally
 % and use that number of threads until you restart MATLAB.
@@ -32,7 +32,7 @@ function op = prox_l1_and_sum( q, b, nColumns, zeroID )
 %   See, e.g., https://github.com/stephenbeckr/SSC
 
 % Nov 2017, Stephen.Becker@Colorado.edu
-% 17 Nov 2018, optimizations by jamesfolberth@gmail.com
+% 18 Nov 2018, optimizations by jamesfolberth@gmail.com
 
 if nargin == 0
     q = 1;
@@ -50,6 +50,19 @@ if zeroID && nColumns == 1
 end
 
 
+USE_MEX_WORKER = 1;
+if USE_MEX_WORKER
+    if 3~=exist('prox_l1_and_sum_worker_mex','file')
+        addpath( fullfile( tfocs_where, 'mexFiles' ) );
+    end
+    if 3==exist('prox_l1_and_sum_worker_mex','file')
+        op = tfocs_prox( @(x)f(q,x), @(x,t)prox_f_using_worker(q,b,nColumns,zeroID,x,t) , 'vector' );
+        return;
+    end
+    % else fall back to optimized MATLAB approach
+end
+
+
 % 3/15/18, adding:
 %JMF 17 Nov 2018: determine if we have shrink_mex once when constructing the prox handle
 if 3~=exist('shrink_mex2','file')
@@ -64,7 +77,7 @@ if 3==exist('shrink_mex2','file')
 else
     % this is fast, but requires more memory
     shrink  = @(x,tq) sign(x).*max( abs(x) - tq, 0 );
-    shrink_nu = @(x,tq,nu) shrink(x-nu);
+    shrink_nu = @(x,tq,nu) shrink(x-nu,tq);
 end
 
 % This is Matlab and Octave compatible code
@@ -105,6 +118,26 @@ function x = prox_f(qq,b,nColumns,zeroID,shrink,shrink_nu,x,t) % stepsize is t
     end
 end
 
+
+function x = prox_f_using_worker(qq,b,nColumns,zeroID,x,t) % stepsize is t
+    tq = t .* qq; % March 2012, allowing vectorized stepsizes
+    
+    if nColumns > 1 % matrix
+        x = reshape(x, [], nColumns);
+        nRows = size(x,1);
+
+        if zeroID && nColumns > nRows
+            error('Cannot zero out the diagonal if columns > rows');
+        end
+
+        x = prox_l1_and_sum_worker_mex(x, tq, b, zeroID);
+
+        x = reshape(x, nRows*nColumns, 1);
+    
+    else % vector
+        x = prox_l1_and_sum_worker_mex(x, tq, b);
+    end
+end
 
 
 % Main algorithmic part: if x0 is length n, takes O(n log n) time

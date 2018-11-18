@@ -1,8 +1,8 @@
 function [] = test_prox_l1_and_sum()
     
     check_correctness()
-    %time_single_run()
-    profile_single_run()
+    time_single_run()
+    %profile_single_run()
 
 end 
 
@@ -11,23 +11,26 @@ function [] = check_correctness()
 % Check correctness of optimizations done to prox_l1_and_sum
 
     % An example from sparse subspace clustering (SSC)
-    rng(271828);
-    n_rows = 7;
-    n_cols = 6;
+    %rng(271828);
+    n_rows = 700;
+    n_cols = 600;
     x = randn(n_rows, n_cols);
     x = x(:);
     t = 1;
     Q = 1;
     b = 1;
     zeroID = true;
-    useMatricized = true;
+    useMatricized = false;
     
     % Make the prox operators
     prox_ref = prox_l1_and_sum(Q, b, n_cols, zeroID, useMatricized);
     prox_test = prox_l1_and_sum_optimized(Q, b, n_cols, zeroID);
     
-    y_ref = prox_ref(x, t);
-    y_test = prox_test(x, t);
+    [~,y_ref] = prox_ref(x, t);
+    [~,y_test] = prox_test(x, t);
+
+    %reshape(y_ref, [n_rows n_cols])
+    %reshape(y_test, [n_rows n_cols])
 
     rel_err = norm(y_ref - y_test, 'fro') / norm(y_ref, 'fro');
     fprintf('relative error = %1.5e\n', rel_err);
@@ -54,6 +57,7 @@ function [] = time_single_run()
     % Make the prox operator
     %prox = prox_l1_and_sum(Q, b, n_cols, zeroID, useMatricized);
     shrink_mex2(struct('num_threads', 4));
+    prox_l1_and_sum_worker_mex(struct('num_threads', 8));
     prox = prox_l1_and_sum_optimized(Q, b, n_cols, zeroID);
     
     % Warm up
