@@ -14,10 +14,22 @@ function op = prox_l1_mat_optimized( q, nColumns, zeroID)
 %       if zeroID == true (it is false by default)
 %       then after reshaping X, enforces that X(i,i) = 0
 %
+%
+% If available and compiled, this uses TFOCS/mexFiles/shrink_mex2.cc
+% to apply the shrinkage operator.  To control the number of threads it uses,
+% run
+%
+%   `shrink_mex2(struct('num_threads', 4))`
+%
+% when constructing your problem.  This will cache the number of threads internally
+% and use that number of threads until you restart MATLAB.
+%
+%
 % Often useful for sparse subpsace clustering (SSC)
 %   See, e.g., https://github.com/stephenbeckr/SSC
 
 % Mar 2018, Stephen.Becker@Colorado.edu
+% 17 Nov 2018, optimizations by jamesfolberth@gmail.com
 
 if nargin == 0
     q = 1;
@@ -41,11 +53,12 @@ end
 
 % 3/15/18, adding:
 %JMF 17 Nov 2018: determine if we have shrink_mex once when constructing the prox handle
-if 3~=exist('shrink_mex','file')
+if 3~=exist('shrink_mex2','file')
     addpath( fullfile( tfocs_where, 'mexFiles' ) );
 end
-if 3==exist('shrink_mex','file') 
-    shrink  = @(x,tq) shrink_mex(x,tq);
+if 3==exist('shrink_mex2','file') 
+    %shrink  = @(x,tq) shrink_mex(x,tq);
+    shrink  = @(x,tq) shrink_mex2(x,tq);
 else
     % this is fast, but requires more memory
     shrink  = @(x,tq) sign(x).*max( abs(x) - tq, 0 );
