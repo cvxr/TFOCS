@@ -1,4 +1,4 @@
-function op = prox_l1_and_sum_optimized( q, b, nColumns, zeroID, useMex )
+function op = prox_l1_and_sum( q, b, nColumns, zeroID, useMex )
 
 %PROX_L1_AND_SUM    L1 norm with sum(X)=b constraints
 %    OP = PROX_L1_AND_SUM( Q ) implements the nonsmooth function

@@ -1,4 +1,4 @@
-function op = prox_l1_mat_optimized( q, nColumns, zeroID, useMex)
+function op = prox_l1_mat( q, nColumns, zeroID, useMex)
 
 %PROX_L1_MAT    L1 norm, matricized in a special way
 %    OP = PROX_L1_MAT( Q, nColumns ) implements the nonsmooth function
