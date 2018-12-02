@@ -8,3 +8,6 @@
 *.out
 *.synctex.gz
 *.toc
+.cproject
+.project
+.settings

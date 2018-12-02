@@ -21,6 +21,15 @@ compileFunction('proxAdaptiveL1Mex.c');
 % For a faster implementation of soft-thresholding/shrinkage
 compileFunction('shrink_mex.c');
 
+if ~octave
+    % For a faster-er implementation of soft-thresholding/shrinkage
+    compileForMatlabWithOptions('shrink_mex2.cc');
+    
+    % For a faster implementation of prox_l1_and_sum
+    compileForMatlabWithOptions('prox_l1_and_sum_worker_mex.cc');
+end
+
+
 
 
 
@@ -34,7 +43,17 @@ end
 
 % -- subroutines --
 function compileForMatlab( inputFile )
-mex(inputFile)
+    mex(inputFile)
+end
+
+function compileForMatlabWithOptions( inputFile )
+    % Options are set a la mexopts.sh
+    % See /usr/local/MATLAB/R2017a/bin/mexopts.sh
+    mex(inputFile,...
+        'CFLAGS="$CFLAGS -O2 -march=native -mtune=native -fopenmp"',...
+        'CLIBS="$CLIBS -lgomp"',...
+        'CXXFLAGS="$CXXFLAGS -O2 -march=native -mtune=native -fopenmp"',...
+        'CXXLIBS="$CXXLIBS -lgomp"')
 end
 
 function compileForOctave( inputFile )
