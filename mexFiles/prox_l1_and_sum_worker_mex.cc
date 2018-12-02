@@ -317,8 +317,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     const double *x = mxGetPr(prhs[0]);
 
     // Second input
-    //TODO JMF 18 Nov 2018: should accept a vector input?
-    const double lambda = mxGetScalar(prhs[1]);
+    // lambda can be a vector or a scalar
+    size_t n_lambda = mxGetNumberOfElements(prhs[1]);
+    if (n_lambda > 1 && n_lambda != nCols) {
+        mexErrMsgTxt("lambda should be a scalar or have number of elements "
+                "equal to the number of columns of X.");
+    }
+    const double *lambda = mxGetPr(prhs[1]);
+
+
 
     // Third input
     const double b = mxGetScalar(prhs[2]);
@@ -339,7 +346,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     // Okay, now we're ready to go
     if (nCols == 1) { // vector case
         Proxl1Sum prox;
-        prox.run(y, x, nRows, lambda, b);
+        prox.run(y, x, nRows, lambda[0], b);
 
     } else {
         #pragma omp parallel num_threads(opt.num_threads)
@@ -348,10 +355,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
             #pragma omp for schedule(static)
             for (size_t j=0; j<nCols; ++j) {
+                double lambda_val = (n_lambda > 1) ? lambda[j] : lambda[0];
                 if (zero_diag) {
-                    prox.run(y + nRows*j, x + nRows*j, nRows, lambda, b, j);
+                    prox.run(y + nRows*j, x + nRows*j, nRows, lambda_val, b, j);
                 } else {
-                    prox.run(y + nRows*j, x + nRows*j, nRows, lambda, b);
+                    prox.run(y + nRows*j, x + nRows*j, nRows, lambda_val, b);
                 }
             }
         }

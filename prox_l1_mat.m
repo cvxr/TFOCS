@@ -18,6 +18,7 @@ function op = prox_l1_mat_optimized( q, nColumns, zeroID, useMex)
 %       toggle the usage of shrink_mex2.cc for the shrinkage operation.
 %       useMex defaults to true
 %
+%
 % If available and compiled, this uses TFOCS/mexFiles/shrink_mex2.cc
 % to apply the shrinkage operator.  To control the number of threads it uses,
 % run
@@ -47,14 +48,11 @@ else
 end
 
 if nargin < 3 || isempty( zeroID ), zeroID = false; end
+if nargin < 4, useMex = true; end
 
 if zeroID && nColumns == 1
     warning('TFOCS:prox_l1_mat:zeroDiag',...
         'You requested enforcing zero diagonals but did not set nColumns>1 which is probably a mistake');
-end
-
-if nargin < 4
-    useMex = true;
 end
 
 
