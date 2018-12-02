@@ -181,8 +181,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     const double *X = mxGetPr(prhs[0]);
 
     // Second input
-    //TODO JMF 18 Nov 2018: should accept a vector input?
-    const double lambda = mxGetScalar(prhs[1]);
+    // lambda can be a vector or a scalar
+    size_t n_lambda = mxGetNumberOfElements(prhs[1]);
+    if (n_lambda > 1 && n_lambda != n) {
+        mexErrMsgTxt("lambda should be a scalar or have number of elements "
+                "equal to the number of columns of X.");
+    }
+    const double *lambda = mxGetPr(prhs[1]);
 
     // Allocate output
     plhs[0] = mxCreateUninitNumericMatrix(m, n, mxDOUBLE_CLASS, mxREAL);
@@ -200,7 +205,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     if (!offset_array) {
         #pragma omp parallel for num_threads(opt.num_threads) schedule(static)
         for (size_t j=0; j<n; ++j) {
-            shrink(Y + m*j, X + m*j, lambda, m);
+            double lambda_val = (n_lambda > 1) ? lambda[j] : lambda[0];
+            shrink(Y + m*j, X + m*j, lambda_val, m);
         }
 
     } else {
@@ -216,14 +222,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
             #pragma omp parallel for num_threads(opt.num_threads) schedule(static)
             for (size_t j = 0; j < n; ++j) {
-                shrink_offset(Y + m * j, X + m * j, lambda, offset[j], m);
+                double lambda_val = (n_lambda > 1) ? lambda[j] : lambda[0];
+                shrink_offset(Y + m * j, X + m * j, lambda_val, offset[j], m);
             }
 
         } else {
             double offset = mxGetScalar(offset_array);
             #pragma omp parallel for num_threads(opt.num_threads) schedule(static)
             for (size_t j = 0; j < n; ++j) {
-                shrink_offset(Y + m * j, X + m * j, lambda, offset, m);
+                double lambda_val = (n_lambda > 1) ? lambda[j] : lambda[0];
+                shrink_offset(Y + m * j, X + m * j, lambda_val, offset, m);
             }
         }
     }

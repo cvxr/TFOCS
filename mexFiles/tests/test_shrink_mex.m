@@ -14,6 +14,8 @@ function [] = check_correctness()
     n = 600;
     X = randn(m,n);
     lambda = rand();
+    %NOTE: shrink_mex doesn't properly handle vector lambda; shrink_mex2 fixes this
+    %lambda = rand(1,n); % shrink_mex doesn't properly handle vector lambda; shrink_mex2 fixes this
     soffset = randn();
     voffset = randn(1,n);
 
