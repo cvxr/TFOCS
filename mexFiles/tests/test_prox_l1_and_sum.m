@@ -53,12 +53,13 @@ function [] = time_single_run()
     Q = 1;
     b = 1;
     zeroID = true;
+    useMex = false;
     useMex = true;
+    shrink_mex2(struct('num_threads', 4));
+    prox_l1_and_sum_worker_mex(struct('num_threads', 8));
 
     % Make the prox operator
     %prox = prox_l1_and_sum_ref(Q, b, n_cols, zeroID);
-    shrink_mex2(struct('num_threads', 4));
-    prox_l1_and_sum_worker_mex(struct('num_threads', 8));
     prox = prox_l1_and_sum(Q, b, n_cols, zeroID, useMex);
     
     % Warm up

@@ -1,7 +1,7 @@
 function [] = test_prox_l1_mat()
     
     check_correctness()
-    %time_single_run()
+    time_single_run()
 
 end
 
@@ -47,11 +47,12 @@ function [] = time_single_run()
     t = 1;
     Q = 1;
     zeroID = true;
-    useMex = true;
+    useMex = false;
+    useMex = true; shrink_mex2(struct('num_threads', 4));
     
     % Make the prox operator
-    %prox = prox_l1_mat(Q, n_cols, zeroID, useMatricized);
-    prox = prox_l1_mat(Q, n_cols, zeroID);
+    %prox = prox_l1_mat_ref(Q, n_cols, zeroID);
+    prox = prox_l1_mat(Q, n_cols, zeroID, useMex);
     
     % Warm up
     n_done = 0;
