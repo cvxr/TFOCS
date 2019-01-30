@@ -83,8 +83,8 @@ if useMex
     shrink  = @(x,tq) shrink_mex2(x,tq);
     shrink_nu = @(x,tq,nu) shrink_mex2(x,tq,nu);
 else
-    shrink  = @(x,tq) sign(x).*max( abs(x) - tq, 0 );
-    shrink_nu = @(x,tq,nu) shrink(x-nu,tq);
+    shrink  = @(x,tq) sign(x).*max( bsxfun(@minus,abs(x),tq), 0 );
+    shrink_nu = @(x,tq,nu) shrink(bsxfun(@minus,x,nu),tq);
 end
 
 % This is Matlab and Octave compatible code
@@ -100,7 +100,7 @@ end
 function x = prox_f(qq,b,nColumns,zeroID,shrink,shrink_nu,x,t) % stepsize is t
     tq = t .* qq; % March 2012, allowing vectorized stepsizes
     tq = reshape(tq, [1 numel(tq)]);
-    
+
     if zeroID && nColumns > 1
         x   = reshape( x, [], nColumns );
         nRows   = size(x,1);
