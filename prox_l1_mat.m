@@ -70,7 +70,7 @@ if useMex
     %shrink  = @(x,tq) shrink_mex(x,tq); %NOTE: shrink_mex doesn't handle vector tq properly
     shrink  = @(x,tq) shrink_mex2(x,tq);
 else
-    shrink  = @(x,tq) sign(x).*max( abs(x) - tq, 0 );
+    shrink  = @(x,tq) sign(x).*max(bsxfun(@minus, abs(x), tq), 0 );
 end
 
 
