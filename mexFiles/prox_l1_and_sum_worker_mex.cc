@@ -37,8 +37,9 @@
 #else
     #define HAVE_AVX 0
 #endif
-
+#if defined(_OPENMP)
 #include <omp.h>
+#endif
 
 #include <mex.h>
 

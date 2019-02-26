@@ -49,11 +49,52 @@ end
 function compileForMatlabWithOptions( inputFile )
     % Options are set a la mexopts.sh
     % See /usr/local/MATLAB/R2017a/bin/mexopts.sh
-    mex(inputFile,...
-        'CFLAGS="$CFLAGS -O2 -march=native -mtune=native -fopenmp"',...
-        'CLIBS="$CLIBS -lgomp"',...
-        'CXXFLAGS="$CXXFLAGS -O2 -march=native -mtune=native -fopenmp"',...
-        'CXXLIBS="$CXXLIBS -lgomp"')
+    try
+        % for MSVC-based compilers (e.g., Windows),
+        % try changing the 
+        %    CFLAGS="\$CFLAGS -fopenmp" 
+        % to
+        %   COMPFLAGS="/openmp"
+        myCCompiler = mex.getCompilerConfigurations('C','Selected');
+        c_name  = lower( myCCompiler.ShortName );
+        if contains( c_name, {'gcc','clang'} )
+            CC_type = 1;
+        elseif contains( c_name, 'msvcc' )
+            CC_type = 2;
+        else
+            CC_type = 3;
+        end
+        switch CC_type
+            case 1
+                mex(inputFile,...
+                    'CFLAGS="$CFLAGS -O2 -march=native -mtune=native -fopenmp"',...
+                    'CLIBS="$CLIBS -lgomp"',...
+                    'CXXFLAGS="$CXXFLAGS -O2 -march=native -mtune=native -fopenmp"',...
+                    'CXXLIBS="$CXXLIBS -lgomp"')
+            case 2
+                % untested
+                mex(inputFile,...
+                    'COMPFLAGS="/openmp"' );
+            case 3
+                mex(inputFile )
+        end
+    catch er
+        if strcmpi(er.identifier,'MATLAB:mex:Error') && ...
+                ~isempty( strfind( er.message, 'fopenmp' ) )
+            disp('Warning, openMP not found on your system, code is not multi-threaded');
+            if CC_type == 1
+                mex(inputFile,...
+                    'CFLAGS="$CFLAGS -O2 -march=native -mtune=native"',...
+                    'CLIBS="$CLIBS -lgomp"',...
+                    'CXXFLAGS="$CXXFLAGS -O2 -march=native -mtune=native"',...
+                    'CXXLIBS="$CXXLIBS -lgomp"')
+            else
+                mex(inputFile )
+            end
+        else
+            rethrow( er );
+        end
+    end
 end
 
 function compileForOctave( inputFile )
