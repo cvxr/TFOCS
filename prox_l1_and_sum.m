@@ -250,6 +250,7 @@ function x = prox_l1sum_matricized( x0, lambda, b, shrink_nu )
     nCols        = size( x0, 2 ); % allow matrices
     LDA          = size( brk_pts, 1 );
     offsets      = (0:nCols-1)*LDA;%i.e., [0, LDA, 2*LDA, ... ];
+    num_brk_pts = LDA;
     
     lwrBnd       = zeros(1,nCols);
     uprBnd       = (length(brk_pts) + 1)*ones(1,nCols);
@@ -278,12 +279,12 @@ function x = prox_l1sum_matricized( x0, lambda, b, shrink_nu )
     [a1,a2]     = deal( zeros(1,nCols) );
     ind = find( lwrBnd == 0 );
     a2(ind) = brk_pts( uprBnd(ind) + offsets(ind) );
-    a1(ind) = a2(ind) - 10;
+    a1(ind) = a2(ind) + 10;
     ind2 = ind;
     
-    ind = find( uprBnd == size(brk_pts,1) + 1 );
+    ind = find( uprBnd == num_brk_pts + 1 );
     a1(ind) = brk_pts( lwrBnd(ind) + offsets(ind) );
-    a2(ind) = a1(ind) + 10;
+    a2(ind) = a1(ind) - 10;
     
     indOther = setdiff( 1:nCols, [ind2,ind] );
     a1(indOther)    = brk_pts( lwrBnd(indOther) + offsets(indOther) );
@@ -372,12 +373,12 @@ function x = prox_l1sum_zeroID_matricized( x0, lambda, b, shrink_nu )
     [a1,a2]     = deal( zeros(1,nCols) );
     ind = find( lwrBnd == 0 );
     a2(ind) = brk_pts( uprBnd(ind) + offsets(ind) );
-    a1(ind) = a2(ind) - 10;
+    a1(ind) = a2(ind) + 10;
     ind2 = ind;
     
-    ind = find( uprBnd == size(brk_pts,1) + 1 );
+    ind = find( uprBnd == num_brk_pts + 1 );
     a1(ind) = brk_pts( lwrBnd(ind) + offsets(ind) );
-    a2(ind) = a1(ind) + 10;
+    a2(ind) = a1(ind) - 10;
     
     indOther = setdiff( 1:nCols, [ind2,ind] );
     a1(indOther)    = brk_pts( lwrBnd(indOther) + offsets(indOther) );
