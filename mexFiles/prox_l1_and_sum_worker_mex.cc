@@ -167,7 +167,11 @@ void Proxl1Sum::run(double *y,
     // Sort break_points in decreasing order
     std::sort(break_points_.rbegin(), break_points_.rend());
 
-    // Bisection search to find sum(x) - b == 0
+    //for (size_t i=0; i<break_points_.size(); ++i) {
+    //    std::cout << "bp[i] = " << break_points_[i] << std::endl;
+    //}
+
+    // Bisection search to solve 0 == sum(x) - b =: h(a)
     ptrdiff_t lower_bound = -1;
     size_t num_break_points = (zero_ind >= 0) ? 2*n - 2 : 2*n;
     ptrdiff_t upper_bound = num_break_points;
@@ -185,16 +189,16 @@ void Proxl1Sum::run(double *y,
                               + static_cast<double>(upper_bound)));
 
         // Check that we're not at either endpoint (which may be invalid indexes)
-        if (ind == lower_bound) {
+        if (ind == -1) {
             ++ind;
-        } else if (ind == upper_bound) {
+        } else if (ind == num_break_points) {
             --ind;
         }
 
         // Evaluate the prox at this offset and check the function value
         double a = break_points_[ind];
         evaluate_prox(y, x0, n, lambda, a);
-        double h = evaluate_func(y, n, b);
+        double h = evaluate_func(y, n, b); // evaluate h(a)
 
         if (zero_ind >= 0) {
             h -= y[zero_ind];
@@ -208,23 +212,58 @@ void Proxl1Sum::run(double *y,
         }
     }
 
+    //std::cout << "lower_bound = " << lower_bound << std::endl;
+    //std::cout << "upper_bound = " << upper_bound << std::endl;
+
     // Now determine linear part, which we infer from two points.
-    // If the lower or upper bounds are infinite, we take special care
+    // If the lower or upper bounds are outside the range of valid break points
+    // (i.e., they are infinite by the convention of Algorithm 3 of
+    //  https://arxiv.org/pdf/1804.06291.pdf), we take special care
     // by using a new "a" that is slightly bigger/lower, respectively.
+    // Note that lower_bound/upper_bound correspond to indexes of
+    // the break points vector, which is sorted in _decreasing_ order.
+    // Thus, to get _lower_ than lower_bound, we need a _higher_ a.
     // This is then used to extract the linear part.
-    double a;
+    double a_left, a_right; // bracket of the root h(a) == 0
     if (lower_bound == -1) {
-        a = break_points_[upper_bound];
-        // use a - 10 as lower bound
-        a = 0.5*(a - 10 + a);
+        // use a + 10 as right part of bracket
+        a_left = break_points_[upper_bound];
+        a_right = a_left + 10;
     } else if (upper_bound == num_break_points) {
-        a = break_points_[lower_bound];
-        // use a + 10 as upper bound
-        a = 0.5*(a + a + 10);
+        // use a - 10 as left part of bracket
+        a_right = break_points_[lower_bound];
+        a_left = a_right - 10;
     } else {
         // general case
-        a = 0.5*(break_points_[lower_bound] + break_points_[upper_bound]);
+        a_left = break_points_[lower_bound];
+        a_right = break_points_[upper_bound];
     }
+    double a = 0.5*(a_left + a_right);
+    //std::cout << "a = " << a << std::endl;
+
+    /*
+    evaluate_prox(y, x0, n, lambda, a_left);
+    double h_left = evaluate_func(y, n, b);
+    if (zero_ind >= 0) {
+            h_left -= y[zero_ind];
+        }
+
+    evaluate_prox(y, x0, n, lambda, a);
+    double h_a = evaluate_func(y, n, b);
+    if (zero_ind >= 0) {
+            h_a -= y[zero_ind];
+    }
+
+    evaluate_prox(y, x0, n, lambda, a_right);
+    double h_right = evaluate_func(y, n, b);
+    if (zero_ind >= 0) {
+            h_right -= y[zero_ind];
+    }
+
+    std::cout << "h(left) = " << h_left << "  "
+              << "h(a) = " << h_a << "  "
+              << "h(right) = " << h_right << std::endl;
+    */
 
     // Now we have the support; find the exact value
     evaluate_prox(y, x0, n, lambda, a); // to find the support
@@ -259,6 +298,13 @@ void Proxl1Sum::run(double *y,
     if (zero_ind >= 0) {
         y[zero_ind] = 0.;
     }
+
+    // h(nu) should be 0
+    //double h_nu = evaluate_func(y, n, b);
+    //if (zero_ind >= 0) {
+    //        h_nu -= y[zero_ind];
+    //    }
+    //std::cout << "h(nu) = " << h_nu << std::endl;
 
 }
 
@@ -325,8 +371,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
                 "equal to the number of columns of X.");
     }
     const double *lambda = mxGetPr(prhs[1]);
-
-
 
     // Third input
     const double b = mxGetScalar(prhs[2]);

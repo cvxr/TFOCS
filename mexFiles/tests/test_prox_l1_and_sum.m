@@ -1,7 +1,7 @@
 function [] = test_prox_l1_and_sum()
     
     check_correctness()
-    time_single_run()
+    %time_single_run()
     %profile_single_run()
 
 end 
@@ -12,29 +12,42 @@ function [] = check_correctness()
 
     % An example from sparse subspace clustering (SSC)
     %rng(271828);
-    n_rows = 700;
-    n_cols = 600;
+    % - Larger mxn randn will test the main/average part of the bisection.
+    % - To test the upper_bound edge condition, use 2x2 randn with positive b.
+    % - To test the lower_bound edge condition, use 2x2 randn with negative b.
+    n_rows = 2;
+    n_cols = 2;
     x = randn(n_rows, n_cols);
     x = x(:);
     t = rand();
-    t = rand(n_cols,1);
+    %t = rand(1,n_cols);
     Q = rand();
     b = rand();
+
     zeroID = true;
-    useMex = true;
     
     % Make the prox operators
-    prox_ref = prox_l1_and_sum_ref(Q, b, n_cols, zeroID);
-    prox_test = prox_l1_and_sum(Q, b, n_cols, zeroID, useMex);
+    % JMF 26 Feb 2019: this doesn't appear to be correct in break-point edge cases; trust useMex=false version
+    %prox_ref = prox_l1_and_sum_ref(Q, b, n_cols, zeroID);
+    prox_ref = prox_l1_and_sum(Q, b, n_cols, zeroID, false);
+    prox_test = prox_l1_and_sum(Q, b, n_cols, zeroID, true);
     
     [~,y_ref] = prox_ref(x, t);
     [~,y_test] = prox_test(x, t);
-
-    %reshape(y_ref, [n_rows n_cols])
-    %reshape(y_test, [n_rows n_cols])
+    
+    y_ref = reshape(y_ref, [n_rows n_cols]);
+    y_test = reshape(y_test, [n_rows n_cols]);
+    
+    %y_ref
+    %y_test
+    %sum(y_ref, 1)
+    %sum(y_test, 1)
 
     rel_err = norm(y_ref - y_test, 'fro') / norm(y_ref, 'fro');
     fprintf('relative error = %1.5e\n', rel_err);
+    
+    sum_err = norm(sum(y_test,1) - b, 'fro') / abs(b);
+    fprintf('relative error in sum = %1.5e\n', sum_err)
 
 end
 
