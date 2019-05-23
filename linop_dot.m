@@ -5,7 +5,7 @@ function op = linop_dot( A, adj )
 %    OP = LINOP_DOT( A, 1 ) returns the adjoint of that operator.
 
 switch class( A ),
-    case 'double',
+    case {'double','single'}
         sz = { size(A), [1,1] };
     case 'cell',
         A = tfocs_tuple(A);

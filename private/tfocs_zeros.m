@@ -26,7 +26,12 @@ switch class( y ),
         else
             z = zeros( size(y) );
         end
-
+    case 'single'
+        if (numel(y) == 2 || numel(y) == 3) && all(isint(y))
+            z = zeros( y ,'single');
+        else
+            z = zeros( size(y) ,'single');
+        end
     case 'cell',
         if isa( y{1}, 'function_handle' ),
             z = y{1}( y{2:end} );
