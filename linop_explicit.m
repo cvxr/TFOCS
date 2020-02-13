@@ -4,6 +4,9 @@ function A = linop_explicit( op )
 %   Useful for checking correctness of code.
 % A = LINOP_EXPLICIT( OP ) 
 %   returns the matrix A such that A*X = OP(X)
+%
+% Note: may not play well with linear operators defined on complex numbers
+%   (but should be OK if the output inclides complex numbers)
 
 % Introduced June 2016
 

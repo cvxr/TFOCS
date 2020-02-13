@@ -13,9 +13,15 @@ function op = linop_TV( sz, variation, action )
 %    TV = LINOP_TV( X ) returns ||X||_TV  if X is bigger than 2 x 2
 %
 %    OP = LINOP_TV( SZ, VARIANT ) 
-%       if VARIANT is 'regular' (default),
+%       if VARIANT is 'regular' or 'reflexive' (default),
+%           assumes reflexive boundary conditions, so never penalizes
+%           points on the outer boundary
+%           (prior to Feb 13 2020, this was incorrectly
+%            labeled as "Dirichlet" boundary condition)
+%       if VARIANT is 'Dirichlet'
 %           assumes zeros on the boundary (Dirichlet boundary conditions)
-%       if VARIANT is 'circular',
+%           (added Feb 2020)
+%       if VARIANT is 'circular', aka 'periodic'
 %           assumes circularity, so x(:,N+1) - x(:,N)
 %           is calculated by x(:,1) - x(:,N) (and similarly
 %           for row differences) [when SZ={M,N}]
@@ -23,13 +29,31 @@ function op = linop_TV( sz, variation, action )
 %    [...] = LINOP_TV(SZ, VARIATION, ACTION )
 %       if ACTION is 'handle', returns a TFOCS function handle (default)
 %       if ACTION is 'cvx', returns a function handle suitable for CVX
+%           (this variant returns the full TV semi-norm, not just the
+%            associated linear operators)
 %       if ACTION is 'matrix', returns the explicit TV matrix
 %           (real part corresponds to horizontal differences,
 %            imaginary part correspond to vertical differences)
-%       if ACTION is 'norm', returns an estimate of the norm
+%       if ACTION is 'norm', returns an estimate of the spectral norm
+%            of the the linear TV operator
 %
 %   TODO: check circular case for non-square domains
 %
+% The linear operators are of the form J kron I and I kron J,
+%   where I is identity, and J is something like:
+% Reflexive:
+%     -1     1     0
+%      0    -1     1
+%      0     0     0
+% Dirichlet:     
+%     -1     1     0
+%      0    -1     1
+%      0     0    -1
+% Circular
+%     -1     1     0
+%      0    -1     1
+%      1     0    -1
+     
 
 error(nargchk(1,3,nargin));
 if nargin < 2 || isempty(variation), variation = 'regular'; end
@@ -55,7 +79,16 @@ mat = @(x) reshape(x,n1,n2);
 
 if strcmpi(action,'matrix') || strcmpi(action,'cvx')
     switch lower(variation)
-        case 'regular'
+        case {'regular','reflexive'}
+            % Update: Feb 13 2020, this is not really "Dirichlet" b.c.,
+            %   but actually "reflexiv" b.c., assuming x_{n+1} = x_n,
+            %   so that x_{n+1} - x_{n} = 0
+%{
+for n2=3, J looks like
+    -1     1     0
+     0    -1     1
+     0     0     0
+%}            
             e = ones(max(n1,n2),1);
             e2 = e;
             e2(n2:end) = 0;
@@ -69,7 +102,33 @@ if strcmpi(action,'matrix') || strcmpi(action,'cvx')
             J = spdiags([-e2,e], 0:1,n1,n1);
             I = eye(n2);
             Dv = kron(I,J);  % vertical differences, sparse matrix
-        case 'circular'
+        case 'dirichlet'
+            % Adding this Feb 13 2020
+            % Assumes x_{n+1} = 0
+%{
+ for n2=3, J looks like
+    -1     1     0
+     0    -1     1
+     0     0    -1
+%}
+            e = ones(max(n1,n2),1);
+            e2 = e;
+            J = spdiags([-e2,e], 0:1,n2,n2);
+            I = eye(n1);
+            Dh = kron(J,I);  % horizontal differences, sparse matrix
+            
+            e2 = e;
+            J = spdiags([-e2,e], 0:1,n1,n1);
+            I = eye(n2);
+            Dv = kron(I,J);  % vertical differences, sparse matrix
+        case {'circular','periodic'}
+            % Assumes x_{n+1} = x_{1}
+%{
+ for n2=3, J looks like
+    -1     1     0
+     0    -1     1
+     1     0    -1
+%}            
             e = ones(max(n1,n2),1);
             e2 = e;
 %             e2(n2:end) = 0;
@@ -91,13 +150,29 @@ if strcmpi(action,'matrix') || strcmpi(action,'cvx')
         op = Dh + 1i*Dv;
     else
         % "norms" is a CVX function, but we can over-load it (see sub-function below)
-        op = @(X) sum( norms( [Dh*X(:), Dv*X(:)]', 1 ) );
+%         op = @(X) sum( norms( [Dh*X(:), Dv*X(:)]', 1 ) );
+        % Feb 13 2020, the above seems buggy! might have meant the 1 to 
+        %   mean dimension (but then don't transpose, and it's in the wrong
+        %   spot).  Try this instead:
+%         op = @(X) sum( norms( [Dh*X(:), Dv*X(:)]', 2 ) );
+        % No, that doesn't work: Disciplined convex programming error: Invalid operation: sqrt( {positive convex} )
+        % Try with explicit imaginary part
+%         op = @(X) sum_square_abs( Dh*X(:) +  1i*(Dv*X(:)) ); % no, this squares it
+        
+        % This is correct:
+        op = @(X) norm( Dh*X(:) +  1i*(Dv*X(:)), 1 );
+
     end
     return;
 end
 
 switch lower(variation)
-    case 'regular'
+    % Convention: Dh and Dv are the forward operators
+    %   diff_h and diff_v are the adjoint/transpose operators
+    %   (similar but not the same)
+    % Note: adjoint of A kron B is A^* kron B^*
+    %   (and we will convert A + i*B to [A';B'] explicitly later)
+    case {'regular','reflexive'}
         Dh     = @(X) vec( [diff(X,1,2),  zeros(n1,1)] );
         diff_h = @(X) [zeros(n1,1),X(:,1:end-1)] - [X(:,1:end-1),zeros(n1,1) ];
         Dv     = @(X) vec( [diff(X,1,1); zeros(1,n2)] );
@@ -105,7 +180,15 @@ switch lower(variation)
         % sometimes diff_v is much slower than diff_h
         % We can exploit data locality by working with transposes
         diff_v_t = @(Xt) ([zeros(n2,1),Xt(:,1:end-1)] - [Xt(:,1:end-1),zeros(n2,1)])';
-    case 'circular'
+    case 'dirichlet'
+        % New, Feb 2020
+        Dh     = @(X) vec( [diff(X,1,2),  -X(:,end) ] );
+        diff_h = @(X) [zeros(n1,1),X(:,1:end-1)] - X; 
+        Dv     = @(X) vec( [diff(X,1,1); -X(end,:) ] );
+        % sometimes diff_v is much slower than diff_h
+        % We can exploit data locality by working with transposes
+        diff_v_t = @(Xt) ([zeros(n2,1),Xt(:,1:end-1)] - Xt)'; 
+    case {'circular','periodic'}
         % For circular version, 2 x 2 case is special.
 %         error('not yet implemented');
         Dh     = @(X) vec( [diff(X,1,2),  X(:,1) - X(:,end)] );
