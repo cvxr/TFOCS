@@ -31,7 +31,7 @@ if isscalar(q)
     end
     op = @(varargin)prox_l2_q( q, varargin{:} );
 else
-    if all(q==0), error('Argument must be nonzero'); end
+    if all(q==0, 'all'), error('Argument must be nonzero'); end
     warning('TFOCS:experimental','Using experimental feature of TFOCS');
     op = @(varargin)prox_l2_vector( q, varargin{:} );
 end
