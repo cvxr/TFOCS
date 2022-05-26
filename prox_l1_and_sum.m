@@ -40,7 +40,7 @@ function op = prox_l1_and_sum( q, b, nColumns, zeroID, useMex )
 
 if nargin == 0
     q = 1;
-elseif ~isnumeric( q ) || ~isreal( q ) ||  any( q < 0, 'all' ) || all(q==0, 'all') || numel( q ) ~= 1
+elseif ~isnumeric( q ) || ~isreal( q ) ||  any( q(:) < 0) || all(q(:)==0) || numel( q ) ~= 1
     error( 'Argument must be positive.' );
 end
 if nargin < 2 || isempty(b), b = 1; else, assert( numel(b) == 1 ); end

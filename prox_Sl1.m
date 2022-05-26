@@ -21,7 +21,7 @@ function op = prox_Sl1( lambda )
 
 if nargin == 0,
 	lambda = 1;
-elseif ~isnumeric( lambda ) || ~isreal( lambda ) ||  any( lambda <= 0, 'all' ) 
+elseif ~isnumeric( lambda ) || ~isreal( lambda ) ||  any( lambda(:) <= 0 ) 
 	error( 'Argument lambda must have all positive entries.' );
 end
 if ~issorted(flipud(lambda(:)))
