@@ -12,7 +12,7 @@ function op = prox_l1( q )
 
 if nargin == 0,
 	q = 1;
-elseif ~isnumeric( q ) || ~isreal( q ) ||  any( q < 0 ) || all(q==0) %|| numel( q ) ~= 1
+elseif ~isnumeric( q ) || ~isreal( q ) ||  any( q(:) < 0 ) || all(q(:)==0) %|| numel( q ) ~= 1
     if q==0
         op = prox_0;
         warning('TFOCS:zeroQ','q=0 so returning the proximal operator for the zero function');

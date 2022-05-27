@@ -9,7 +9,7 @@ function op = prox_l1pos( q )
 
 if nargin == 0,
 	q = 1;
-elseif ~isnumeric( q ) || ~isreal( q ) ||  any( q < 0 ) || all(q==0) %|| numel( q ) ~= 1
+elseif ~isnumeric( q ) || ~isreal( q ) ||  any( q(:) < 0 ) || all(q(:)==0) %|| numel( q ) ~= 1
 	error( 'Argument must be positive.' );
 end
 
